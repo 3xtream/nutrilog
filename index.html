@@ -1,281 +1,823 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nutrilog - AI Food Analyzer</title>
-    <style>
-        :root {
-            --primary: #2ecc71;
-            --primary-dark: #27ae60;
-            --bg: #f8f9fa;
-            --card-bg: #ffffff;
-            --text: #2c3e50;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { max-width: 600px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h1 { font-size: 24px; text-align: center; margin-bottom: 20px; color: var(--primary-dark); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-        input[type="file"] { width: 100%; padding: 10px; background: #f1f2f6; border-radius: 6px; border: 1px dashed #ccc; cursor: pointer; }
-        .btn-sec { background: #7f8c8d; margin-top: 5px; font-size: 12px; padding: 6px; }
-        .btn-sec:hover { background: #95a5a6; }
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
-        button:hover { background: var(--primary-dark); }
-        button:disabled { background: #bdc3c7; cursor: not-allowed; }
-        #preview { width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; margin-top: 15px; display: none; }
-        .loading { text-align: center; display: none; font-weight: bold; color: #7f8c8d; margin: 15px 0; }
-        .result-box { display: none; margin-top: 25px; padding: 20px; background: #f1f9f5; border-left: 5px solid var(--primary); border-radius: 4px; }
-        .result-box h3 { margin-bottom: 12px; color: var(--primary-dark); }
-        .grid-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-        .stat-card { background: white; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; text-align: center; }
-        .stat-card span { display: block; font-size: 18px; font-weight: bold; color: var(--text); }
-        .history-box { max-width: 600px; width: 100%; background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: #f8f9fa; font-weight: 600; }
-        .api-badge { font-size: 11px; padding: 4px 8px; border-radius: 20px; display: inline-block; margin-top: 5px; font-weight: bold;}
-        .saved { background: #d4edda; color: #155724; }
-        .missing { background: #f8d7da; color: #721c24; }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NutriLog — Pencatat Diet Harian</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght=0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --bg:        #f4f8f4;
+      --surface:   #ffffff;
+      --surface2:  #eef5ee;
+      --border:    #d3e8d3;
+      --green-1:   #2e7d52;
+      --green-2:   #4caf7d;
+      --green-3:   #a8d8b9;
+      --teal:      #3d9ea6;
+      --amber:     #e6a817;
+      --coral:     #e06d53;
+      --text:      #1c2d22;
+      --text-mute: #627568;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 40px;
+    }
+    .serif { font-family: 'Fraunces', serif; font-weight: 600; }
+    header {
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0; z-index: 100;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; font-size: 1.25rem; color: var(--green-1); }
+    .nav-user { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; }
+    .btn-logout {
+      background: none; border: none; color: var(--coral); cursor: pointer;
+      font-weight: 500; display: flex; align-items: center; gap: 4px;
+    }
+    .container { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+    .auth-box {
+      max-width: 400px; margin: 80px auto; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 16px; padding: 32px;
+      box-shadow: 0 4px 20px rgba(46,125,82,0.05);
+    }
+    .auth-box h2 { text-align: center; margin-bottom: 8px; color: var(--green-1); }
+    .auth-box p.subtitle { text-align: center; color: var(--text-mute); font-size: 0.9rem; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+    .form-group input, .form-group select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 8px; font-family: inherit; font-size: 0.95rem; background: var(--surface2);
+    }
+    .form-group input:focus, .form-group select:focus { outline: 2px solid var(--green-2); background: var(--surface); }
+    .btn-primary {
+      width: 100%; padding: 12px; background-color: var(--green-1); color: white;
+      border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer;
+      transition: background 0.2s; margin-top: 8px;
+    }
+    .btn-primary:hover { background-color: var(--green-2); }
+    .auth-footer { text-align: center; font-size: 0.875rem; margin-top: 16px; color: var(--text-mute); }
+    .auth-footer a { color: var(--green-1); font-weight: 600; text-decoration: none; cursor: pointer; }
+    .dashboard { display: grid; grid-template-columns: 1fr; gap: 24px; }
+    @media (min-width: 768px) { .dashboard { grid-template-columns: 320px 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .sum-card { background: var(--surface2); padding: 14px; border-radius: 12px; text-align: center; }
+    .sum-card .label { font-size: 0.8rem; color: var(--text-mute); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .sum-card .val { font-size: 1.4rem; color: var(--text); }
+    .sum-card.status-aman .val { color: var(--green-1); font-weight: 600; }
+    .sum-card.status-lebih .val { color: var(--coral); font-weight: 600; }
+    .meal-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+    .meal-btn {
+      background: var(--surface2); border: 1px solid var(--border); padding: 8px 4px;
+      border-radius: 8px; font-size: 0.8rem; cursor: pointer; font-family: inherit;
+      display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-mute);
+    }
+    .meal-btn i { font-size: 1rem; }
+    .meal-btn.active { background: var(--green-1); color: white; border-color: var(--green-1); }
+    .preview-box { background: #fef8eb; border: 1px dashed var(--amber); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 12px; font-size: 0.9rem; }
+    .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; gap: 16px; }
+    .tab { padding: 8px 4px; font-weight: 500; color: var(--text-mute); cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab.active { color: var(--green-1); border-bottom-color: var(--green-1); font-weight: 600; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .log-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; border-bottom: 1px solid var(--border);
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-left { display: flex; align-items: center; gap: 12px; }
+    .log-icon {
+      width: 36px; height: 36px; background: var(--surface2); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; color: var(--green-1); font-size: 0.9rem;
+    }
+    .log-title { font-weight: 500; font-size: 0.95rem; }
+    .log-sub { font-size: 0.75rem; color: var(--text-mute); margin-top: 2px; }
+    .log-right { display: flex; align-items: center; gap: 12px; }
+    .log-kcal { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+    .btn-del { background: none; border: none; color: #b0bec5; cursor: pointer; padding: 4px; font-size: 0.9rem; }
+    .btn-del:hover { color: var(--coral); }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-mute); font-size: 0.9rem; }
+    .empty-state i { font-size: 2rem; color: var(--border); margin-bottom: 12px; display: block; }
+    .chart-container { position: relative; width: 100%; margin-top: 16px; }
+    canvas { background: var(--surface); display: block; width: 100%; height: 200px; }
+    .chart-tooltip {
+      position: absolute; background: rgba(28,45,34,0.95); color: white;
+      padding: 8px 12px; border-radius: 6px; font-size: 0.75rem; pointer-events: none;
+      display: none; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.15); line-height: 1.4;
+    }
+    .btn-danger-outline {
+      background: none; border: 1px solid var(--border); color: var(--text-mute);
+      padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-family: inherit;
+    }
+    .btn-danger-outline:hover { border-color: var(--coral); color: var(--coral); background: #fffcfb; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .history-group { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+    .history-group-head {
+      background: var(--surface2); padding: 10px 16px; font-size: 0.85rem; font-weight: 600;
+      display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);
+    }
+    #loading-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(255,255,255,0.85); display: none; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 999; gap: 12px;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 4px solid var(--surface2);
+      border-top-color: var(--green-1); border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #toast-msg {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: #2c3e50; color: white; padding: 12px 24px; border-radius: 30px;
+      font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0;
+    }
+    #toast-msg.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>⚙️ Konfigurasi API</h1>
-        <div class="form-group">
-            <label for="apiKeyInput">Gemini API Key (Disimpan di Browser Anda)</label>
-            <input type="password" id="apiKeyInput" placeholder="Masukkan AI Studio API Key...">
-            <div id="apiStatus" class="api-badge missing">Belum Ada API Key</div>
-            <button id="saveKeyBtn" style="padding: 8px; font-size: 14px;">Simpan Key</button>
-        </div>
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loading-text" style="font-weight:500; font-size:0.9rem; color:var(--text);">Memuat sistem...</div>
+  </div>
+  <div id="toast-msg">Notifikasi</div>
+
+  <div id="view-auth-login" class="auth-box" style="display:none;">
+    <h2 class="serif">NutriLog</h2>
+    <p class="subtitle">Pencatat Diet & Kalori Harian</p>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="nama@email.com"/>
     </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••"/>
+    </div>
+    <button class="btn-primary" onclick="executeLogin()">Masuk Ke Akun</button>
+    <div class="auth-footer">
+      Belum punya akun? <a onclick="toggleAuthView(false)">Daftar sekarang</a>
+    </div>
+  </div>
 
-    <div class="container">
-        <h1>🥗 Nutrilog AI</h1>
-        
-        <div class="form-group">
-            <label for="imageInput">Ambil Foto / Unggah Foto Makanan</label>
-            <input type="file" id="imageInput" accept="image/*">
-            <img id="preview" alt="Pratinjau Gambar">
-        </div>
+  <div id="view-auth-register" class="auth-box" style="display:none;">
+    <h2 class="serif">Buat Akun</h2>
+    <p class="subtitle">Daftar untuk mulai memantau nutrisi Anda</p>
+    <div class="form-group">
+      <label>Nama Lengkap</label>
+      <input type="text" id="reg-nama" placeholder="Contoh: Budi Santoso"/>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="reg-email" placeholder="nama@email.com"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="reg-password" placeholder="Minimal 6 karakter"/>
+    </div>
+    <button class="btn-primary" onclick="executeRegister()">Registrasi</button>
+    <div class="auth-footer">
+      Sudah punya akun? <a onclick="toggleAuthView(true)">Login di sini</a>
+    </div>
+  </div>
 
-        <button id="analyzeBtn" disabled>Analisis & Simpan Ke Sheet</button>
-        
-        <div class="loading" id="loadingText">Sedang menganalisis makanan dengan AI...</div>
+  <div id="view-app" style="display:none;">
+    <header>
+      <div class="brand serif"><i class="fa-solid fa-apple-whole"></i> NutriLog</div>
+      <div class="nav-user">
+        <span id="display-username" style="font-weight:600;">User</span>
+        <button class="btn-logout" onclick="executeLogout()"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+      </div>
+    </header>
 
-        <div class="result-box" id="resultBox">
-            <h3 id="foodName">Nama Makanan</h3>
-            <div class="grid-stats">
-                <div class="stat-card">Kalori<span id="calVal">0 kcal</span></div>
-                <div class="stat-card">Protein<span id="protVal">0 g</span></div>
-                <div class="stat-card">Karbohidrat<span id="carbVal">0 g</span></div>
-                <div class="stat-card">Lemak<span id="fatVal">0 g</span></div>
+    <main class="container">
+      <div class="dashboard">
+        <div class="left-col">
+          <div class="card" style="margin-bottom:24px;">
+            <h3 class="serif" style="margin-bottom:16px; color:var(--green-1);">Tambah Konsumsi</h3>
+            <div style="margin-bottom:12px;">
+              <label style="display:block; font-size:0.8rem; font-weight:500; margin-bottom:4px; color:var(--text-mute);">WAKTU MAKAN</label>
+              <div class="meal-selector">
+                <button class="meal-btn active" data-meal="Pagi" onclick="selectMeal('Pagi')"><i class="fa-solid fa-sun"></i>Pagi</button>
+                <button class="meal-btn" data-meal="Siang" onclick="selectMeal('Siang')"><i class="fa-solid fa-cloud-sun"></i>Siang</button>
+                <button class="meal-btn" data-meal="Malam" onclick="selectMeal('Malam')"><i class="fa-solid fa-moon"></i>Malam</button>
+                <button class="meal-btn" data-meal="Camilan" onclick="selectMeal('Camilan')"><i class="fa-solid fa-cookie-bite"></i>Camilan</button>
+              </div>
             </div>
+            <div class="form-group">
+              <label>Nama Makanan / Minuman</label>
+              <input type="text" id="foodName" placeholder="Misal: Nasi Goreng Telur"/>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+              <div class="form-group">
+                <label>Jumlah Porsi</label>
+                <input type="number" id="portions" value="1" step="0.5" min="0.1" oninput="calculatePreview()"/>
+              </div>
+              <div class="form-group">
+                <label>Kcal / Porsi</label>
+                <input type="number" id="kcalPer" placeholder="Misal: 350" min="1" oninput="calculatePreview()"/>
+              </div>
+            </div>
+            <div class="preview-box">
+              Estimasi Total: <strong id="previewKcal" style="color:var(--amber);">— kkal</strong>
+            </div>
+            <button class="btn-primary" onclick="tambahCatatan()"><i class="fa-solid fa-plus" style="margin-right:6px;"></i> Simpan Catatan</button>
+          </div>
+
+          <div class="card">
+            <h3 class="serif" style="margin-bottom:12px; color:var(--green-1);">Target Kalori</h3>
+            <div class="form-group" style="margin-bottom:12px;">
+              <input type="number" id="input-target" value="2000" min="500" style="text-align:center; font-weight:600;"/>
+            </div>
+            <button class="btn-primary" style="background-color:var(--surface2); color:var(--green-1); border:1px solid var(--border);" onclick="updateTarget()">Perbarui Target</button>
+          </div>
         </div>
-    </div>
 
-    <div class="history-box">
-        <h2>Riwayat Makan Terbaru</h2>
-        <button id="refreshBtn" style="width: auto; padding: 6px 12px; font-size: 12px; float: right; margin-top: -30px;">Refresh</button>
-        <table id="historyTable">
-            <thead>
-                <tr>
-                    <th>Makanan</th>
-                    <th>Kalori</th>
-                    <th>P / K / L</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td colspan="3" style="text-align: center; color: #95a5a6;">Memuat riwayat...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <div class="right-col">
+          <div class="card" style="margin-bottom:24px;">
+            <div class="summary-grid">
+              <div class="sum-card">
+                <div class="label">Hari Ini</div>
+                <div class="val serif" id="sum-today" style="font-weight:600;">0 <span style="font-size:0.9rem">kkal</span></div>
+              </div>
+              <div class="sum-card" id="status-card">
+                <div class="label">Sisa Kuota</div>
+                <div class="val serif" id="sum-status">2,000 <span style="font-size:0.9rem">kkal</span></div>
+              </div>
+            </div>
+            <div class="tabs">
+              <div class="tab active" id="tab-today" onclick="switchTab('today')">Hari Ini</div>
+              <div class="tab" id="tab-history" onclick="switchTab('history')">Riwayat Log</div>
+              <div class="tab" id="tab-trend" onclick="switchTab('trend')">Tren 7 Hari</div>
+            </div>
 
-    <script>
-        // --- KONFIGURASI BACKEND ---
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyBFm8AJl80Fsp6zij3nfG5uERXqZPyDTX0Mi7-hkz0LHF1AtXWxPJt8CzfXA6eipXbeg/exec"; // Ganti dengan URL Web App GAS Anda
-        
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const apiStatus = document.getElementById('apiStatus');
-        const saveKeyBtn = document.getElementById('saveKeyBtn');
-        const imageInput = document.getElementById('imageInput');
-        const preview = document.getElementById('preview');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const loadingText = document.getElementById('loadingText');
-        const resultBox = document.getElementById('resultBox');
-        
-        let currentBase64Image = "";
+            <div id="panel-today" class="panel active">
+              <div id="list-today"></div>
+            </div>
 
-        // Fungsi Memuat API Key dari LocalStorage
-        function loadSavedApiKey() {
-            const savedKey = localStorage.getItem('NUTRILOG_GEMINI_KEY');
-            if (savedKey) {
-                apiKeyInput.value = savedKey;
-                apiStatus.innerText = "✓ API Key Tersimpan Secara Lokal";
-                apiStatus.className = "api-badge saved";
-            } else {
-                apiKeyInput.value = "";
-                apiStatus.innerText = "⚠ API Key Belum Dikonfigurasi";
-                apiStatus.className = "api-badge missing";
-            }
+            <div id="panel-history" class="panel">
+              <div class="history-header">
+                <div style="font-size:0.85rem; color:var(--text-mute);" id="history-count">0 catatan ditemukan</div>
+                <button class="btn-danger-outline" onclick="hapusSemua()"><i class="fa-solid fa-trash-can"></i> Bersihkan Semua</button>
+              </div>
+              <div id="list-history"></div>
+            </div>
+
+            <div id="panel-trend" class="panel">
+              <div class="chart-container">
+                <div id="chartTooltip" class="chart-tooltip"></div>
+                <canvas id="trendChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    /* ==========================================================
+       STATE UTAMA & KONFIGURASI (FETCH MODE)
+       ========================================================== */
+    // !!! TEMPELKAN URL WEB APP DEPLOYMENT DARI GOOGLE APPS SCRIPT ANDA DI SINI !!!
+    const API_URL = "https://script.google.com/macros/s/AKfycbyBFm8AJl80Fsp6zij3nfG5uERXqZPyDTX0Mi7-hkz0LHF1AtXWxPJt8CzfXA6eipXbeg/exec"; 
+
+    let currentUser = null; 
+    let masterLogs = [];    
+    let selectedMeal = 'Pagi';
+    const TODAY_KEY = new Date().toISOString().split('T')[0];
+
+    const MEAL_ICONS = {
+      'Pagi': 'fa-sun',
+      'Siang': 'fa-cloud-sun',
+      'Malam': 'fa-moon',
+      'Camilan': 'fa-cookie-bite'
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUser = sessionStorage.getItem('nutrilog_user');
+      const savedTarget = localStorage.getItem('nutrilog_target');
+      if (savedTarget) {
+        document.getElementById('input-target').value = savedTarget;
+      }
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        launchApp();
+      } else {
+        toggleAuthView(true);
+      }
+    });
+
+    function showLoading(show, text = "Memproses...") {
+      const overlay = document.getElementById('loading-overlay');
+      document.getElementById('loading-text').textContent = text;
+      overlay.style.display = show ? 'flex' : 'none';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast-msg');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => { t.classList.remove('show'); }, 3000);
+    }
+
+    function toggleAuthView(showLogin) {
+      document.getElementById('view-auth-login').style.display = showLogin ? 'block' : 'none';
+      document.getElementById('view-auth-register').style.display = showLogin ? 'none' : 'block';
+      document.getElementById('view-app').style.display = 'none';
+    }
+
+    function launchApp() {
+      document.getElementById('view-auth-login').style.display = 'none';
+      document.getElementById('view-auth-register').style.display = 'none';
+      document.getElementById('view-app').style.display = 'block';
+      document.getElementById('display-username').textContent = currentUser.nama;
+      fetchAndRenderAll();
+    }
+
+    /* ==========================================================
+       AUTHENTICATION SYSTEMS (VIA FETCH POST)
+       ========================================================== */
+    function executeLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-password').value;
+      if (!email || !pass) { showToast('⚠️ Email dan password wajib diisi!'); return; }
+
+      showLoading(true, "Memvalidasi akun...");
+      
+      fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "loginUser", email: email, password: pass })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          currentUser = res.user;
+          sessionStorage.setItem('nutrilog_user', JSON.stringify(currentUser));
+          showToast('🔓 Login Berhasil!');
+          launchApp();
+        } else {
+          showLoading(false);
+          showToast('❌ ' + res.message);
         }
+      })
+      .catch(err => { showLoading(false); showToast('❌ Gagal tersambung ke Server Cloud.'); });
+    }
 
-        // Simpan API Key ke LocalStorage
-        saveKeyBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            if (key) {
-                localStorage.setItem('NUTRILOG_GEMINI_KEY', key);
-                alert("API Key berhasil disimpan di browser Anda secara aman!");
-                loadSavedApiKey();
-            } else {
-                localStorage.removeItem('NUTRILOG_GEMINI_KEY');
-                alert("API Key dihapus.");
-                loadSavedApiKey();
-            }
+    function executeRegister() {
+      const nama = document.getElementById('reg-nama').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const pass = document.getElementById('reg-password').value;
+
+      if (!nama || !email || !pass) { showToast('⚠️ Semua data form wajib diisi!'); return; }
+      if (pass.length < 6) { showToast('⚠️ Password minimal harus 6 karakter!'); return; }
+
+      showLoading(true, "Mendaftarkan user baru...");
+
+      fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "registerUser", email: email, password: pass, nama: nama })
+      })
+      .then(res => res.json())
+      .then(res => {
+        showLoading(false);
+        if (res.success) {
+          showToast('✅ ' + res.message);
+          toggleAuthView(true);
+        } else {
+          showToast('⚠️ ' + res.message);
+        }
+      })
+      .catch(() => { showLoading(false); showToast('❌ Gagal mendaftarkan user.'); });
+    }
+
+    function executeLogout() {
+      sessionStorage.removeItem('nutrilog_user');
+      currentUser = null;
+      masterLogs = [];
+      document.getElementById('login-password').value = '';
+      toggleAuthView(true);
+      showToast('🔒 Anda telah keluar dari sistem.');
+    }
+
+    /* ==========================================================
+       CORE DATA FETCHING (VIA FETCH GET)
+       ========================================================== */
+    function fetchAndRenderAll() {
+      showLoading(true, "Mengambil data aktivitas...");
+      
+      fetch(`${API_URL}?action=getUserLogs&email=${encodeURIComponent(currentUser.email)}`)
+      .then(res => res.json())
+      .then(logs => {
+        masterLogs = logs;
+        renderToday();
+        if (document.getElementById('panel-history').classList.contains('active')) renderHistory();
+        if (document.getElementById('panel-trend').classList.contains('active')) renderTrendChart();
+        showLoading(false);
+      })
+      .catch(err => {
+        showLoading(false);
+        showToast('❌ Gagal sinkronisasi data.');
+      });
+    }
+
+    /* ==========================================================
+       UI INTERACTION LOGIC
+       ========================================================== */
+    function getTarget() {
+      return parseInt(document.getElementById('input-target').value) || 2000;
+    }
+
+    function updateTarget() {
+      const val = getTarget();
+      localStorage.setItem('nutrilog_target', val);
+      showToast('🎯 Target kalori diperbarui ke ' + val.toLocaleString('id-ID') + ' kkal');
+      renderToday();
+      if (document.getElementById('panel-trend').classList.contains('active')) renderTrendChart();
+    }
+
+    function selectMeal(type) {
+      selectedMeal = type;
+      document.querySelectorAll('.meal-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-meal') === type);
+      });
+    }
+
+    function calculatePreview() {
+      const portion = parseFloat(document.getElementById('portions').value) || 0;
+      const kcalPer = parseFloat(document.getElementById('kcalPer').value) || 0;
+      const box = document.getElementById('previewKcal');
+      if (portion > 0 && kcalPer > 0) {
+        box.textContent = Math.round(portion * kcalPer).toLocaleString('id-ID') + ' kkal';
+      } else {
+        box.textContent = '— kkal';
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      
+      document.getElementById('tab-' + tabId).classList.add('active');
+      document.getElementById('panel-' + tabId).classList.add('active');
+
+      if (tabId === 'history') renderHistory();
+      if (tabId === 'trend') renderTrendChart();
+    }
+
+    function fmtDate(s) {
+      if(!s) return '';
+      const parts = s.split('-');
+      if(parts.length!==3) return s;
+      const bln = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+      return `${parts[2]} ${bln[parseInt(parts[1])-1]} ${parts[0]}`;
+    }
+
+    /* ==========================================================
+       RENDER CONTROLLERS
+       ========================================================== */
+    function renderToday() {
+      const list = document.getElementById('list-today');
+      list.innerHTML = '';
+      
+      const todayLogs = masterLogs.filter(l => l.tanggal === TODAY_KEY);
+      const totalToday = todayLogs.reduce((acc, curr) => acc + curr.totalKcal, 0);
+      
+      document.getElementById('sum-today').innerHTML = `${totalToday.toLocaleString('id-ID')} <span style="font-size:0.9rem">kkal</span>`;
+      
+      const target = getTarget();
+      const sisa = target - totalToday;
+      const statusCard = document.getElementById('status-card');
+      const statusVal = document.getElementById('sum-status');
+      
+      if (sisa >= 0) {
+        statusCard.className = 'sum-card status-aman';
+        statusCard.querySelector('.label').textContent = 'Sisa Kuota';
+        statusVal.innerHTML = `${sisa.toLocaleString('id-ID')} <span style="font-size:0.9rem">kkal</span>`;
+      } else {
+        statusCard.className = 'sum-card status-lebih';
+        statusCard.querySelector('.label').textContent = 'Surplus Kalori';
+        statusVal.innerHTML = `${Math.abs(sisa).toLocaleString('id-ID')} <span style="font-size:0.9rem">kkal</span>`;
+      }
+
+      if (todayLogs.length === 0) {
+        list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-utensils"></i>Belum ada makanan yang dicatat hari ini.</div>`;
+        return;
+      }
+
+      todayLogs.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'log-item';
+        div.innerHTML = `
+          <div class="log-left">
+            <div class="log-icon"><i class="fa-solid ${MEAL_ICONS[item.meal]||'fa-utensils'}"></i></div>
+            <div>
+              <div class="log-title">${item.name}</div>
+              <div class="log-sub">${item.meal} • ${item.portion} Porsi (@${item.kcalPer} kkal) • Jam ${item.time}</div>
+            </div>
+          </div>
+          <div class="log-right">
+            <div class="log-kcal">${item.totalKcal.toLocaleString('id-ID')} kkal</div>
+            <button class="btn-del" onclick="hapusEntri('${item.id}')"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('list-history');
+      container.innerHTML = '';
+      
+      document.getElementById('history-count').textContent = `${masterLogs.length} catatan ditemukan`;
+
+      if (masterLogs.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-folder-open"></i>Riwayat log kosong.</div>`;
+        return;
+      }
+
+      const groups = {};
+      masterLogs.forEach(l => {
+        if (!groups[l.tanggal]) groups[l.tanggal] = [];
+        groups[l.tanggal].push(l);
+      });
+
+      const sortedDates = Object.keys(groups).sort((a,b) => b.localeCompare(a));
+
+      sortedDates.forEach(date => {
+        const logs = groups[date];
+        const dayTotal = logs.reduce((sum, n) => sum + n.totalKcal, 0);
+        
+        const gDiv = document.createElement('div');
+        gDiv.className = 'history-group';
+        
+        const head = document.createElement('div');
+        head.className = 'history-group-head';
+        head.innerHTML = `
+          <div><i class="fa-regular fa-calendar-days" style="margin-right:6px;"></i> ${fmtDate(date)} ${date===TODAY_KEY?'(Hari Ini)':''}</div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="color:var(--text); font-weight:600;">Total: ${dayTotal.toLocaleString('id-ID')} kkal</span>
+            <button class="btn-danger-outline" style="padding:2px 6px; font-size:0.75rem;" onclick="resetHari('${date}')">Reset Hari</button>
+          </div>
+        `;
+        gDiv.appendChild(head);
+
+        logs.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'log-item';
+          div.innerHTML = `
+            <div class="log-left">
+              <div class="log-icon" style="width:30px; height:30px; font-size:0.8rem;"><i class="fa-solid ${MEAL_ICONS[item.meal]||'fa-utensils'}"></i></div>
+              <div>
+                <div class="log-title" style="font-size:0.9rem;">${item.name}</div>
+                <div class="log-sub" style="font-size:0.7rem;">${item.meal} • ${item.portion} Porsi (@${item.kcalPer} kkal) • Jam ${item.time}</div>
+              </div>
+            </div>
+            <div class="log-right">
+              <div class="log-kcal" style="font-size:0.9rem;">${item.totalKcal.toLocaleString('id-ID')} kkal</div>
+              <button class="btn-del" onclick="hapusEntri('${item.id}')"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          `;
+          gDiv.appendChild(div);
         });
 
-        // Konversi gambar ke Base64 murni
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    preview.src = event.target.result;
-                    preview.style.display = 'block';
-                    currentBase64Image = event.target.result.split(',')[1];
-                    analyzeBtn.disabled = false;
-                }
-                reader.readAsDataURL(file);
-            }
-        });
+        container.appendChild(gDiv);
+      });
+    }
 
-        // Eksekusi Analisis
-        analyzeBtn.addEventListener('click', async () => {
-            const activeApiKey = localStorage.getItem('NUTRILOG_GEMINI_KEY');
-            if (!activeApiKey) {
-                alert("Harap masukkan dan simpan API Key Gemini terlebih dahulu di bagian atas halaman!");
-                return;
-            }
-            if (!currentBase64Image) return;
-            
-            analyzeBtn.disabled = true;
-            loadingText.style.display = 'block';
-            resultBox.style.display = 'none';
+    /* ==========================================================
+       DATA PERSISTENCE / APPLICATION WRITING (VIA FETCH POST)
+       ========================================================== */
+    function tambahCatatan() {
+      const name    = document.getElementById('foodName').value.trim();
+      const portion = parseFloat(document.getElementById('portions').value) || 1;
+      const kcalPer = parseFloat(document.getElementById('kcalPer').value);
+      
+      if (!name) { showToast('⚠️ Nama makanan wajib diisi!'); return; }
+      if (!kcalPer || kcalPer <= 0) { showToast('⚠️ Kalori per porsi wajib diisi!'); return; }
 
-            try {
-                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${activeApiKey}`;
-                const promptText = "Analisis foto makanan ini. Berikan output dalam format JSON murni terstruktur tanpa markdown atau backticks. Format JSON wajib mengikuti struktur ini: {\"nama_makanan\": \"string\", \"kalori\": angka_integer, \"protein\": angka_integer, \"karbohidrat\": angka_integer, \"lemak\": angka_integer}";
+      const dataLog = {
+        tanggal: TODAY_KEY,
+        name: name,
+        meal: selectedMeal,
+        portion: portion,
+        kcalPer: kcalPer,
+        totalKcal: Math.round(portion * kcalPer),
+        time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
+      };
 
-                const payload = {
-                    contents: [{
-                        parts: [
-                            { text: promptText },
-                            { inlineData: { mimeType: "image/jpeg", data: currentBase64Image } }
-                        ]
-                    }]
-                };
+      showLoading(true, "Menyimpan ke Cloud...");
 
-                const geminiResponse = await fetch(geminiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+      fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "addLog", email: currentUser.email, dataLog: dataLog })
+      })
+      .then(res => res.json())
+      .then(res => {
+        document.getElementById('foodName').value  = '';
+        document.getElementById('kcalPer').value   = '';
+        document.getElementById('portions').value  = '1';
+        document.getElementById('previewKcal').textContent = '— kkal';
+        showToast(`✅ ${name} berhasil disimpan!`);
+        fetchAndRenderAll();
+      })
+      .catch(() => { showLoading(false); showToast('❌ Gagal menyimpan data.'); });
+    }
 
-                if(!geminiResponse.ok) {
-                    throw new Error("Gagal merespons dari Gemini API. Pastikan API Key Anda valid.");
-                }
+    function hapusEntri(id) {
+      if (!confirm('Hapus entri makanan ini?')) return;
+      showLoading(true, "Menghapus data...");
 
-                const geminiResult = await geminiResponse.json();
-                const rawResponseText = geminiResult.candidates[0].content.parts[0].text.trim();
-                const cleanJsonString = rawResponseText.replace(/```json|```/g, "").trim();
-                const nutritionData = JSON.parse(cleanJsonString);
+      fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "deleteLog", id: id, email: currentUser.email })
+      })
+      .then(res => res.json())
+      .then(res => {
+        showToast('🗑️ Entri dihapus.');
+        fetchAndRenderAll();
+      })
+      .catch(() => { showLoading(false); showToast('❌ Gagal menghapus.'); });
+    }
 
-                // Taruh hasil ke UI
-                document.getElementById('foodName').innerText = nutritionData.nama_makanan;
-                document.getElementById('calVal').innerText = nutritionData.kalori + " kcal";
-                document.getElementById('protVal').innerText = nutritionData.protein + " g";
-                document.getElementById('carbVal').innerText = nutritionData.karbohidrat + " g";
-                document.getElementById('fatVal').innerText = nutritionData.lemak + " g";
-                resultBox.style.display = 'block';
+    function resetHari(tanggalInput) {
+      const tglTarget = tanggalInput || TODAY_KEY;
+      if (!confirm(`Hapus semua catatan tanggal ${fmtDate(tglTarget)}?\nData hari lain aman.`)) return;
+      showLoading(true, "Mengosongkan log...");
 
-                // Kirim log ke Google Sheets via GAS
-                await saveToSpreadsheet(nutritionData);
-                fetchHistory();
+      fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "clearLogs", email: currentUser.email, tanggal: tglTarget })
+      })
+      .then(res => res.json())
+      .then(res => {
+        showToast('🔄 Riwayat tanggal tersebut berhasil dibersihkan.');
+        fetchAndRenderAll();
+      })
+      .catch(() => { showLoading(false); showToast('❌ Gagal mereset.'); });
+    }
 
-            } catch (error) {
-                alert("Kesalahan analisis: " + error.message);
-                console.error(error);
-            } finally {
-                loadingText.style.display = 'none';
-                analyzeBtn.disabled = false;
-            }
-        });
+    function hapusSemua() {
+      if (!confirm('Hapus TOTAL seluruh riwayat Anda di Cloud?\nTindakan ini tidak bisa dibatalkan.')) return;
+      showLoading(true, "Membersihkan seluruh riwayat...");
 
-        async function saveToSpreadsheet(nutritionData) {
-            const payloadGAS = {
-                action: "saveLog",
-                data: {
-                    foodName: nutritionData.nama_makanan,
-                    calories: nutritionData.kalori,
-                    protein: nutritionData.protein,
-                    carbs: nutritionData.karbohidrat,
-                    fat: nutritionData.lemak
-                }
-            };
+      fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "clearLogs", email: currentUser.email, tanggal: null })
+      })
+      .then(res => res.json())
+      .then(res => {
+        showToast('🗑️ Seluruh database riwayat Anda telah dibersihkan.');
+        fetchAndRenderAll();
+      })
+      .catch(() => { showLoading(false); showToast('❌ Gagal menghapus database.'); });
+    }
 
-            const response = await fetch(GAS_WEB_APP_URL, {
-                method: "POST",
-                mode: "cors",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payloadGAS)
-            });
+    /* ==========================================================
+       CANVAS BAR CHART CONFIGURATION & RENDERER
+       ========================================================== */
+    let trendBars = [];
+    function renderTrendChart() {
+      const canvas = document.getElementById('trendChart');
+      if(!canvas) return;
+      const ctx = canvas.getContext('2d');
+      
+      const rect = canvas.parentNode.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = 200 * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      
+      const W = rect.width;
+      const H = 200;
+      ctx.clearRect(0,0,W,H);
 
-            const resJson = await response.json();
-            if(resJson.status !== "success") throw new Error(resJson.message);
-            alert("Berhasil dicatat ke Spreadsheet!");
+      const dates = [];
+      for(let i=6; i>=0; i--){
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        dates.push(d.toISOString().split('T')[0]);
+      }
+
+      const dailyVals = dates.map(dt => {
+        return masterLogs.filter(l => l.tanggal === dt).reduce((s,n)=>s+n.totalKcal, 0);
+      });
+
+      const maxVal = Math.max(...dailyVals, getTarget(), 1000);
+      const padL = 40, padR = 10, padT = 20, padB = 30;
+      const graphW = W - padL - padR;
+      const graphH = H - padT - padB;
+
+      ctx.strokeStyle = '#eef5ee';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#627568';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      
+      const steps = 4;
+      for(let i=0; i<=steps; i++) {
+        const val = Math.round((maxVal / steps) * i);
+        const y = padT + graphH - (val / maxVal) * graphH;
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+        ctx.fillText(val.toLocaleString('id-ID'), padL - 6, y);
+      }
+
+      const target = getTarget();
+      const targetY = padT + graphH - (target / maxVal) * graphH;
+      ctx.strokeStyle = '#e06d53';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(padL, targetY); ctx.lineTo(W - padR, targetY); ctx.stroke();
+      ctx.setLineDash([]);
+
+      const barGap = 12;
+      const totalGaps = dates.length - 1;
+      const barW = (graphW - (totalGaps * barGap)) / dates.length;
+
+      trendBars = [];
+
+      dates.forEach((date, i) => {
+        const val = dailyVals[i];
+        const h = (val / maxVal) * graphH;
+        const x = padL + i * (barW + barGap);
+        const y = padT + graphH - h;
+        const over = val > target;
+
+        ctx.fillStyle = over ? '#e06d53' : '#4caf7d';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(x, y, barW, h>0?h:1, [4, 4, 0, 0]);
+          ctx.fill();
+        } else {
+          ctx.fillRect(x, y, barW, h>0?h:1);
         }
 
-        async function fetchHistory() {
-            const tbody = document.querySelector("#historyTable tbody");
-            try {
-                const response = await fetch(GAS_WEB_APP_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ action: "getHistory" })
-                });
-                const res = await response.json();
-                
-                if (res.status === "success" && res.history.length > 0) {
-                    tbody.innerHTML = "";
-                    const recentData = res.history.reverse().slice(0, 5);
-                    recentData.forEach(item => {
-                        const row = `<tr>
-                            <td><strong>${item.foodName}</strong></td>
-                            <td>${item.calories} kcal</td>
-                            <td>${item.protein}g / ${item.carbs}g / ${item.fat}g</td>
-                        </tr>`;
-                        tbody.innerHTML += row;
-                    });
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #95a5a6;">Belum ada riwayat tercatat.</td></tr>`;
-                }
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #e74c3c;">Gagal memuat riwayat.</td></tr>`;
-            }
-        }
+        ctx.fillStyle = '#627568';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const lbl = date.split('-')[2];
+        ctx.fillText(lbl, x + barW/2, padT + graphH + 6);
 
-        document.getElementById('refreshBtn').addEventListener('click', fetchHistory);
-        
-        // Inisialisasi awal saat load halaman
-        window.onload = function() {
-            loadSavedApiKey();
-            fetchHistory();
-        };
-    </script>
+        trendBars.push({ x:x, y:y, w:barW, h:h, date:date, val:val, over:over, isToday:date===TODAY_KEY });
+      });
+
+      setupChartEvents();
+    }
+
+    function setupChartEvents() {
+      const tooltip = document.getElementById('chartTooltip');
+      const canvas  = document.getElementById('trendChart');
+      function onMove(e) {
+        const rect   = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const cx     = (e.clientX - rect.left) * (canvas.width / rect.width) / window.devicePixelRatio;
+        const cy_    = (e.clientY - rect.top) * (canvas.height / rect.height) / window.devicePixelRatio;
+        let found    = null;
+        for (const b of trendBars) {
+          if (cx >= b.x && cx <= b.x+b.w && cy_ >= b.y && cy_ <= b.y+b.h) { found=b; break; }
+        }
+        if (found) {
+          const target=getTarget();
+          const diff  =found.val-target;
+          const pct   =Math.round((found.val/target)*100);
+          tooltip.innerHTML=
+            `<strong>${fmtDate(found.date)}${found.isToday?' (Hari ini)':''}</strong><br>`+
+            `Konsumsi: <strong>${found.val.toLocaleString('id-ID')} kkal</strong><br>`+
+            `Target: ${target.toLocaleString('id-ID')} kkal (${pct}%)<br>`+
+            (found.over
+              ? `<span style="color:#f0a898">+${Math.abs(diff).toLocaleString('id-ID')} kkal melebihi</span>`
+              : `<span style="color:#a8d8b9">${Math.abs(diff).toLocaleString('id-ID')} kkal sisa kuota</span>`);
+          
+          tooltip.style.display='block';
+          tooltip.style.left=(found.x + 20)+'px';
+          tooltip.style.top=(found.y - 10)+'px';
+        } else {
+          tooltip.style.display='none';
+        }
+      }
+      canvas.onmousemove = onMove;
+      canvas.onmouseleave = () => { tooltip.style.display='none'; };
+    }
+  </script>
 </body>
 </html>
