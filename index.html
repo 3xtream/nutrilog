@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrilog - AI Food Analyzer</title>
+    <style>
+        :root {
+            --primary: #2ecc71;
+            --primary-dark: #27ae60;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 600px; width: 100%; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { font-size: 24px; text-align: center; margin-bottom: 20px; color: var(--primary-dark); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+        input[type="file"] { width: 100%; padding: 10px; background: #f1f2f6; border-radius: 6px; border: 1px dashed #ccc; cursor: pointer; }
+        .btn-sec { background: #7f8c8d; margin-top: 5px; font-size: 12px; padding: 6px; }
+        .btn-sec:hover { background: #95a5a6; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        button:hover { background: var(--primary-dark); }
+        button:disabled { background: #bdc3c7; cursor: not-allowed; }
+        #preview { width: 100%; max-height: 300px; object-fit: contain; border-radius: 8px; margin-top: 15px; display: none; }
+        .loading { text-align: center; display: none; font-weight: bold; color: #7f8c8d; margin: 15px 0; }
+        .result-box { display: none; margin-top: 25px; padding: 20px; background: #f1f9f5; border-left: 5px solid var(--primary); border-radius: 4px; }
+        .result-box h3 { margin-bottom: 12px; color: var(--primary-dark); }
+        .grid-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+        .stat-card { background: white; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; text-align: center; }
+        .stat-card span { display: block; font-size: 18px; font-weight: bold; color: var(--text); }
+        .history-box { max-width: 600px; width: 100%; background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; font-weight: 600; }
+        .api-badge { font-size: 11px; padding: 4px 8px; border-radius: 20px; display: inline-block; margin-top: 5px; font-weight: bold;}
+        .saved { background: #d4edda; color: #155724; }
+        .missing { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>⚙️ Konfigurasi API</h1>
+        <div class="form-group">
+            <label for="apiKeyInput">Gemini API Key (Disimpan di Browser Anda)</label>
+            <input type="password" id="apiKeyInput" placeholder="Masukkan AI Studio API Key...">
+            <div id="apiStatus" class="api-badge missing">Belum Ada API Key</div>
+            <button id="saveKeyBtn" style="padding: 8px; font-size: 14px;">Simpan Key</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>🥗 Nutrilog AI</h1>
+        
+        <div class="form-group">
+            <label for="imageInput">Ambil Foto / Unggah Foto Makanan</label>
+            <input type="file" id="imageInput" accept="image/*">
+            <img id="preview" alt="Pratinjau Gambar">
+        </div>
+
+        <button id="analyzeBtn" disabled>Analisis & Simpan Ke Sheet</button>
+        
+        <div class="loading" id="loadingText">Sedang menganalisis makanan dengan AI...</div>
+
+        <div class="result-box" id="resultBox">
+            <h3 id="foodName">Nama Makanan</h3>
+            <div class="grid-stats">
+                <div class="stat-card">Kalori<span id="calVal">0 kcal</span></div>
+                <div class="stat-card">Protein<span id="protVal">0 g</span></div>
+                <div class="stat-card">Karbohidrat<span id="carbVal">0 g</span></div>
+                <div class="stat-card">Lemak<span id="fatVal">0 g</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="history-box">
+        <h2>Riwayat Makan Terbaru</h2>
+        <button id="refreshBtn" style="width: auto; padding: 6px 12px; font-size: 12px; float: right; margin-top: -30px;">Refresh</button>
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th>Makanan</th>
+                    <th>Kalori</th>
+                    <th>P / K / L</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #95a5a6;">Memuat riwayat...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // --- KONFIGURASI BACKEND ---
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/XXXXX/exec"; // Ganti dengan URL Web App GAS Anda
+        
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const apiStatus = document.getElementById('apiStatus');
+        const saveKeyBtn = document.getElementById('saveKeyBtn');
+        const imageInput = document.getElementById('imageInput');
+        const preview = document.getElementById('preview');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loadingText = document.getElementById('loadingText');
+        const resultBox = document.getElementById('resultBox');
+        
+        let currentBase64Image = "";
+
+        // Fungsi Memuat API Key dari LocalStorage
+        function loadSavedApiKey() {
+            const savedKey = localStorage.getItem('NUTRILOG_GEMINI_KEY');
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+                apiStatus.innerText = "✓ API Key Tersimpan Secara Lokal";
+                apiStatus.className = "api-badge saved";
+            } else {
+                apiKeyInput.value = "";
+                apiStatus.innerText = "⚠ API Key Belum Dikonfigurasi";
+                apiStatus.className = "api-badge missing";
+            }
+        }
+
+        // Simpan API Key ke LocalStorage
+        saveKeyBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem('NUTRILOG_GEMINI_KEY', key);
+                alert("API Key berhasil disimpan di browser Anda secara aman!");
+                loadSavedApiKey();
+            } else {
+                localStorage.removeItem('NUTRILOG_GEMINI_KEY');
+                alert("API Key dihapus.");
+                loadSavedApiKey();
+            }
+        });
+
+        // Konversi gambar ke Base64 murni
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    preview.src = event.target.result;
+                    preview.style.display = 'block';
+                    currentBase64Image = event.target.result.split(',')[1];
+                    analyzeBtn.disabled = false;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Eksekusi Analisis
+        analyzeBtn.addEventListener('click', async () => {
+            const activeApiKey = localStorage.getItem('NUTRILOG_GEMINI_KEY');
+            if (!activeApiKey) {
+                alert("Harap masukkan dan simpan API Key Gemini terlebih dahulu di bagian atas halaman!");
+                return;
+            }
+            if (!currentBase64Image) return;
+            
+            analyzeBtn.disabled = true;
+            loadingText.style.display = 'block';
+            resultBox.style.display = 'none';
+
+            try {
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${activeApiKey}`;
+                const promptText = "Analisis foto makanan ini. Berikan output dalam format JSON murni terstruktur tanpa markdown atau backticks. Format JSON wajib mengikuti struktur ini: {\"nama_makanan\": \"string\", \"kalori\": angka_integer, \"protein\": angka_integer, \"karbohidrat\": angka_integer, \"lemak\": angka_integer}";
+
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: promptText },
+                            { inlineData: { mimeType: "image/jpeg", data: currentBase64Image } }
+                        ]
+                    }]
+                };
+
+                const geminiResponse = await fetch(geminiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if(!geminiResponse.ok) {
+                    throw new Error("Gagal merespons dari Gemini API. Pastikan API Key Anda valid.");
+                }
+
+                const geminiResult = await geminiResponse.json();
+                const rawResponseText = geminiResult.candidates[0].content.parts[0].text.trim();
+                const cleanJsonString = rawResponseText.replace(/```json|```/g, "").trim();
+                const nutritionData = JSON.parse(cleanJsonString);
+
+                // Taruh hasil ke UI
+                document.getElementById('foodName').innerText = nutritionData.nama_makanan;
+                document.getElementById('calVal').innerText = nutritionData.kalori + " kcal";
+                document.getElementById('protVal').innerText = nutritionData.protein + " g";
+                document.getElementById('carbVal').innerText = nutritionData.karbohidrat + " g";
+                document.getElementById('fatVal').innerText = nutritionData.lemak + " g";
+                resultBox.style.display = 'block';
+
+                // Kirim log ke Google Sheets via GAS
+                await saveToSpreadsheet(nutritionData);
+                fetchHistory();
+
+            } catch (error) {
+                alert("Kesalahan analisis: " + error.message);
+                console.error(error);
+            } finally {
+                loadingText.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        });
+
+        async function saveToSpreadsheet(nutritionData) {
+            const payloadGAS = {
+                action: "saveLog",
+                data: {
+                    foodName: nutritionData.nama_makanan,
+                    calories: nutritionData.kalori,
+                    protein: nutritionData.protein,
+                    carbs: nutritionData.karbohidrat,
+                    fat: nutritionData.lemak
+                }
+            };
+
+            const response = await fetch(GAS_WEB_APP_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payloadGAS)
+            });
+
+            const resJson = await response.json();
+            if(resJson.status !== "success") throw new Error(resJson.message);
+            alert("Berhasil dicatat ke Spreadsheet!");
+        }
+
+        async function fetchHistory() {
+            const tbody = document.querySelector("#historyTable tbody");
+            try {
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action: "getHistory" })
+                });
+                const res = await response.json();
+                
+                if (res.status === "success" && res.history.length > 0) {
+                    tbody.innerHTML = "";
+                    const recentData = res.history.reverse().slice(0, 5);
+                    recentData.forEach(item => {
+                        const row = `<tr>
+                            <td><strong>${item.foodName}</strong></td>
+                            <td>${item.calories} kcal</td>
+                            <td>${item.protein}g / ${item.carbs}g / ${item.fat}g</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #95a5a6;">Belum ada riwayat tercatat.</td></tr>`;
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #e74c3c;">Gagal memuat riwayat.</td></tr>`;
+            }
+        }
+
+        document.getElementById('refreshBtn').addEventListener('click', fetchHistory);
+        
+        // Inisialisasi awal saat load halaman
+        window.onload = function() {
+            loadSavedApiKey();
+            fetchHistory();
+        };
+    </script>
+</body>
+</html>
