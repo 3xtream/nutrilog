@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NutriLog — Pencatat Diet Harian</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght=0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
     :root {
@@ -18,806 +18,1012 @@
       --green-3:   #a8d8b9;
       --teal:      #3d9ea6;
       --amber:     #e6a817;
-      --coral:     #e06d53;
-      --text:      #1c2d22;
-      --text-mute: #627568;
+      --coral:     #e07060;
+      --blue:      #5b8dee;
+      --txt:       #1e2d24;
+      --txt-muted: #6b8a74;
+      --radius:    14px;
+      --shadow:    0 4px 24px rgba(46,125,82,.10);
+      --font-head: 'Fraunces', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      padding-bottom: 40px;
-    }
-    .serif { font-family: 'Fraunces', serif; font-weight: 600; }
-    header {
-      background-color: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0; z-index: 100;
-    }
-    .brand { display: flex; align-items: center; gap: 8px; font-size: 1.25rem; color: var(--green-1); }
-    .nav-user { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; }
-    .btn-logout {
-      background: none; border: none; color: var(--coral); cursor: pointer;
-      font-weight: 500; display: flex; align-items: center; gap: 4px;
-    }
-    .container { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
-    .auth-box {
-      max-width: 400px; margin: 80px auto; background: var(--surface);
-      border: 1px solid var(--border); border-radius: 16px; padding: 32px;
-      box-shadow: 0 4px 20px rgba(46,125,82,0.05);
-    }
-    .auth-box h2 { text-align: center; margin-bottom: 8px; color: var(--green-1); }
-    .auth-box p.subtitle { text-align: center; color: var(--text-mute); font-size: 0.9rem; margin-bottom: 24px; }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 6px; color: var(--text); }
-    .form-group input, .form-group select {
-      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
-      border-radius: 8px; font-family: inherit; font-size: 0.95rem; background: var(--surface2);
-    }
-    .form-group input:focus, .form-group select:focus { outline: 2px solid var(--green-2); background: var(--surface); }
-    .btn-primary {
-      width: 100%; padding: 12px; background-color: var(--green-1); color: white;
-      border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer;
-      transition: background 0.2s; margin-top: 8px;
-    }
-    .btn-primary:hover { background-color: var(--green-2); }
-    .auth-footer { text-align: center; font-size: 0.875rem; margin-top: 16px; color: var(--text-mute); }
-    .auth-footer a { color: var(--green-1); font-weight: 600; text-decoration: none; cursor: pointer; }
-    .dashboard { display: grid; grid-template-columns: 1fr; gap: 24px; }
-    @media (min-width: 768px) { .dashboard { grid-template-columns: 320px 1fr; } }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
-    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-    .sum-card { background: var(--surface2); padding: 14px; border-radius: 12px; text-align: center; }
-    .sum-card .label { font-size: 0.8rem; color: var(--text-mute); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .sum-card .val { font-size: 1.4rem; color: var(--text); }
-    .sum-card.status-aman .val { color: var(--green-1); font-weight: 600; }
-    .sum-card.status-lebih .val { color: var(--coral); font-weight: 600; }
-    .meal-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
-    .meal-btn {
-      background: var(--surface2); border: 1px solid var(--border); padding: 8px 4px;
-      border-radius: 8px; font-size: 0.8rem; cursor: pointer; font-family: inherit;
-      display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-mute);
-    }
-    .meal-btn i { font-size: 1rem; }
-    .meal-btn.active { background: var(--green-1); color: white; border-color: var(--green-1); }
-    .preview-box { background: #fef8eb; border: 1px dashed var(--amber); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 12px; font-size: 0.9rem; }
-    .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; gap: 16px; }
-    .tab { padding: 8px 4px; font-weight: 500; color: var(--text-mute); cursor: pointer; border-bottom: 2px solid transparent; }
-    .tab.active { color: var(--green-1); border-bottom-color: var(--green-1); font-weight: 600; }
-    .panel { display: none; }
-    .panel.active { display: block; }
-    .log-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px; border-bottom: 1px solid var(--border);
-    }
-    .log-item:last-child { border-bottom: none; }
-    .log-left { display: flex; align-items: center; gap: 12px; }
-    .log-icon {
-      width: 36px; height: 36px; background: var(--surface2); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; color: var(--green-1); font-size: 0.9rem;
-    }
-    .log-title { font-weight: 500; font-size: 0.95rem; }
-    .log-sub { font-size: 0.75rem; color: var(--text-mute); margin-top: 2px; }
-    .log-right { display: flex; align-items: center; gap: 12px; }
-    .log-kcal { font-weight: 600; font-size: 0.95rem; color: var(--text); }
-    .btn-del { background: none; border: none; color: #b0bec5; cursor: pointer; padding: 4px; font-size: 0.9rem; }
-    .btn-del:hover { color: var(--coral); }
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-mute); font-size: 0.9rem; }
-    .empty-state i { font-size: 2rem; color: var(--border); margin-bottom: 12px; display: block; }
-    .chart-container { position: relative; width: 100%; margin-top: 16px; }
-    canvas { background: var(--surface); display: block; width: 100%; height: 200px; }
-    .chart-tooltip {
-      position: absolute; background: rgba(28,45,34,0.95); color: white;
-      padding: 8px 12px; border-radius: 6px; font-size: 0.75rem; pointer-events: none;
-      display: none; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.15); line-height: 1.4;
-    }
-    .btn-danger-outline {
-      background: none; border: 1px solid var(--border); color: var(--text-mute);
-      padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-family: inherit;
-    }
-    .btn-danger-outline:hover { border-color: var(--coral); color: var(--coral); background: #fffcfb; }
-    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .history-group { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
-    .history-group-head {
-      background: var(--surface2); padding: 10px 16px; font-size: 0.85rem; font-weight: 600;
-      display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);
-    }
-    #loading-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(255,255,255,0.85); display: none; flex-direction: column;
-      align-items: center; justify-content: center; z-index: 999; gap: 12px;
-    }
-    .spinner {
-      width: 40px; height: 40px; border: 4px solid var(--surface2);
-      border-top-color: var(--green-1); border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #toast-msg {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
-      background: #2c3e50; color: white; padding: 12px 24px; border-radius: 30px;
-      font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0;
-    }
-    #toast-msg.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-body); background: var(--bg); color: var(--txt); min-height: 100vh; padding-bottom: 60px; }
+
+    /* AUTH SCREEN */
+    #auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; background: var(--bg); }
+    .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; box-shadow: var(--shadow); width: 100%; max-width: 400px; }
+    .auth-title { font-family: var(--font-head); font-size: 1.8rem; color: var(--green-1); text-align: center; margin-bottom: 8px; }
+    .auth-subtitle { text-align: center; font-size: 0.85rem; color: var(--txt-muted); margin-bottom: 24px; }
+    .auth-toggle { text-align: center; margin-top: 16px; font-size: 0.88rem; color: var(--txt-muted); }
+    .auth-toggle span { color: var(--green-1); cursor: pointer; font-weight: 600; }
+    .auth-toggle span:hover { text-decoration: underline; }
+
+    /* LOADING SPINNER OVERLAY */
+    #loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(244,248,244,0.75); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; }
+    .spinner { width: 45px; height: 45px; border: 4px solid var(--border); border-top: 4px solid var(--green-1); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .loading-text { font-size: 0.9rem; font-weight: 500; color: var(--green-1); }
+
+    /* MAIN APP (HIDDEN BEFORE LOGIN) */
+    #app-container { display: none; }
+
+    /* HEADER */
+    header { background: var(--green-1); padding: 20px 24px 28px; position: relative; overflow: hidden; }
+    header::after { content:''; position:absolute; bottom:-28px; left:0; right:0; height:56px; background:var(--bg); border-radius:50% 50% 0 0/100% 100% 0 0; }
+    .header-inner { max-width:1000px; margin:0 auto; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+    .brand h1 { font-family:var(--font-head); font-size:2rem; font-weight:600; color:#fff; letter-spacing:-.5px; }
+    .brand p  { color:rgba(255,255,255,.7); font-size:.85rem; margin-top:2px; }
+    .header-right { display: flex; align-items: center; gap: 10px; align-self: center; }
+    #today-date { background:rgba(255,255,255,.15); color:#fff; padding:6px 14px; border-radius:20px; font-size:.82rem; white-space:nowrap; }
+    .btn-logout { background: #fff; color: var(--coral); border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-logout:hover { background: var(--surface2); transform: translateY(-1px); }
+
+    /* TABS */
+    .tabs-wrap { max-width:1000px; margin:0 auto; padding:28px 16px 0; }
+    .tabs { display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:5px; width:fit-content; box-shadow:var(--shadow); }
+    .tab-btn { padding:9px 22px; border-radius:9px; border:none; background:none; font-family:var(--font-body); font-size:.88rem; font-weight:600; color:var(--txt-muted); cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:7px; }
+    .tab-btn.active { background:var(--green-1); color:#fff; box-shadow:0 2px 8px rgba(46,125,82,.25); }
+    .tab-btn:not(.active):hover { background:var(--surface2); color:var(--txt); }
+
+    /* LAYOUT */
+    .container { max-width:1000px; margin:0 auto; padding:20px 16px 0; }
+    .panel { display:none; }
+    .panel.active { display:block; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    @media(max-width:700px){ .grid-2 { grid-template-columns:1fr; } }
+    .mb20 { margin-bottom:20px; }
+
+    /* CARD */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow); }
+    .card-title { font-family:var(--font-head); font-size:1.1rem; font-weight:600; color:var(--green-1); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .card-title i { font-size:.95em; opacity:.8; }
+
+    /* FORM */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media(max-width:480px){ .form-grid { grid-template-columns:1fr; } }
+    .form-group { display:flex; flex-direction:column; gap:5px; margin-bottom: 12px; }
+    .form-group.full { grid-column:1/-1; }
+    label { font-size:.76rem; font-weight:600; color:var(--txt-muted); letter-spacing:.04em; text-transform:uppercase; }
+    input, select { border:1.5px solid var(--border); border-radius:9px; padding:9px 12px; font-family:var(--font-body); font-size:.92rem; color:var(--txt); background:var(--surface2); outline:none; transition:border-color .2s,box-shadow .2s; }
+    input:focus, select:focus { border-color:var(--green-2); box-shadow:0 0 0 3px rgba(76,175,125,.15); background:#fff; }
+
+    /* MEAL PILLS */
+    .meal-pills { display:flex; gap:8px; flex-wrap:wrap; }
+    .meal-pill { padding:7px 13px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface2); font-size:.82rem; font-weight:500; cursor:pointer; transition:all .2s; user-select:none; }
+    .meal-pill:hover { border-color:var(--green-2); color:var(--green-1); }
+    .meal-pill.active { background:var(--green-1); color:#fff; border-color:var(--green-1); }
+
+    /* BUTTONS */
+    .btn { display:inline-flex; align-items:center; gap:7px; padding:10px 20px; border-radius:9px; font-family:var(--font-body); font-size:.88rem; font-weight:600; cursor:pointer; border:none; transition:all .2s; white-space:nowrap; }
+    .btn-primary { background:var(--green-1); color:#fff; }
+    .btn-primary:hover { background:#245f3e; transform:translateY(-1px); box-shadow:0 4px 14px rgba(46,125,82,.3); }
+    .btn-danger  { background:#fff; color:var(--coral); border:1.5px solid #f0c4bc; }
+    .btn-danger:hover  { background:var(--coral); color:#fff; }
+    .btn-export  { background:var(--teal); color:#fff; }
+    .btn-export:hover  { background:#2f7d84; }
+    .actions-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+
+    /* SUMMARY NUMBERS */
+    .summary-numbers { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+    .num-box { background:var(--surface2); border-radius:10px; padding:14px 10px; text-align:center; }
+    .num-box .val { font-family:var(--font-head); font-size:1.6rem; font-weight:600; line-height:1; }
+    .num-box .lbl { font-size:.7rem; color:var(--txt-muted); margin-top:4px; font-weight:500; text-transform:uppercase; letter-spacing:.04em; }
+    .num-box.green .val { color:var(--green-1); }
+    .num-box.amber .val { color:var(--amber); }
+    .num-box.coral .val { color:var(--coral); }
+    .target-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+    .target-row label { font-size:.8rem; font-weight:600; color:var(--txt-muted); white-space:nowrap; text-transform:none; letter-spacing:0; }
+    .target-row input { width:90px; }
+
+    /* PROGRESS BAR */
+    .progress-wrap { margin-bottom:6px; }
+    .progress-label { display:flex; justify-content:space-between; font-size:.78rem; color:var(--txt-muted); margin-bottom:6px; }
+    .progress-track { height:12px; background:var(--surface2); border-radius:99px; overflow:hidden; border:1px solid var(--border); }
+    .progress-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--green-2),var(--green-1)); transition:width .5s cubic-bezier(.4,0,.2,1),background .3s; }
+    .progress-fill.warn { background:linear-gradient(90deg,var(--amber),#c8860a); }
+    .progress-fill.over { background:linear-gradient(90deg,var(--coral),#b84a3a); }
+
+    /* ENTRY LIST */
+    .history-list { display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto; padding-right:2px; }
+    .history-list::-webkit-scrollbar { width:5px; }
+    .history-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
+    .entry-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:11px 14px; display:flex; align-items:center; gap:12px; animation:slideIn .25s ease; }
+    @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+    .entry-meal-icon { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:.95rem; flex-shrink:0; }
+    .icon-sarapan { background:#fef3cd; color:#c8860a; }
+    .icon-siang   { background:#d4edda; color:var(--green-1); }
+    .icon-malam   { background:#d0e8ff; color:#2c5fa8; }
+    .icon-camilan { background:#fde2dc; color:var(--coral); }
+    .entry-info { flex:1; min-width:0; }
+    .entry-name { font-weight:600; font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .entry-meta { font-size:.73rem; color:var(--txt-muted); margin-top:2px; }
+    .entry-kcal { font-family:var(--font-head); font-weight:600; font-size:.95rem; color:var(--green-1); white-space:nowrap; }
+    .btn-del { background:none; border:none; color:#ccc; cursor:pointer; padding:4px 6px; border-radius:6px; transition:color .2s,background .2s; }
+    .btn-del:hover { color:var(--coral); background:#fde2dc; }
+    .empty-state { text-align:center; padding:32px 16px; color:var(--txt-muted); font-size:.9rem; }
+    .empty-state i { font-size:2.5rem; opacity:.25; display:block; margin-bottom:10px; }
+
+    /* CHART */
+    canvas { display:block; }
+    .chart-legend { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:14px; }
+    .legend-item { display:flex; align-items:center; gap:5px; font-size:.76rem; color:var(--txt-muted); }
+    .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+    /* RIWAYAT PANEL */
+    .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+    @media(max-width:600px){ .stat-row { grid-template-columns:repeat(2,1fr); } }
+    .stat-box { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px 12px; text-align:center; }
+    .stat-box .sv { font-family:var(--font-head); font-size:1.5rem; font-weight:600; color:var(--green-1); line-height:1; }
+    .stat-box .sl { font-size:.7rem; color:var(--txt-muted); margin-top:4px; text-transform:uppercase; letter-spacing:.04em; font-weight:600; }
+    .trend-wrap { overflow-x:auto; }
+
+    /* ACCORDION */
+    .date-group-header { display:flex; align-items:center; justify-content:space-between; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:11px 16px; cursor:pointer; user-select:none; transition:background .2s; margin-bottom:6px; }
+    .date-group-header:hover { background:var(--border); }
+    .date-group-header .dg-left { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .date-group-header .dg-date { font-weight:600; font-size:.9rem; }
+    .date-group-header .dg-total { font-family:var(--font-head); font-size:1rem; color:var(--green-1); font-weight:600; white-space:nowrap; }
+    .dg-badge { font-size:.72rem; padding:2px 9px; border-radius:99px; font-weight:600; }
+    .badge-ok   { background:#d4edda; color:var(--green-1); }
+    .badge-over { background:#fde2dc; color:var(--coral); }
+    .date-group-entries { display:none; margin-bottom:14px; padding:0 4px; }
+    .date-group-entries.open { display:block; }
+    .chevron { font-size:.8rem; color:var(--txt-muted); transition:transform .2s; flex-shrink:0; }
+    .chevron.open { transform:rotate(90deg); }
+
+    /* PREVIEW BOX */
+    .preview-box { background:var(--surface2); border-radius:9px; padding:10px 14px; font-size:.85rem; color:var(--txt-muted); display:flex; justify-content:space-between; align-items:center; }
+
+    /* TOOLTIP OVERLAY */
+    #chartTooltip { position:fixed; background:rgba(30,45,36,.9); color:#fff; padding:8px 14px; border-radius:9px; font-size:.8rem; pointer-events:none; display:none; z-index:999; line-height:1.6; }
+
+    /* TOAST */
+    #toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:var(--green-1); color:#fff; padding:10px 22px; border-radius:99px; font-size:.85rem; font-weight:600; box-shadow:0 6px 20px rgba(46,125,82,.3); opacity:0; pointer-events:none; transition:opacity .3s; z-index:1000; white-space:nowrap; }
+    #toast.show { opacity:1; }
   </style>
 </head>
 <body>
 
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-    <div id="loading-text" style="font-weight:500; font-size:0.9rem; color:var(--text);">Memuat sistem...</div>
-  </div>
-  <div id="toast-msg">Notifikasi</div>
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Memuat data...</div>
+</div>
 
-  <div id="view-auth-login" class="auth-box" style="display:none;">
-    <h2 class="serif">NutriLog</h2>
-    <p class="subtitle">Pencatat Diet & Kalori Harian</p>
+<div id="auth-container">
+  <div class="auth-card" id="card-login">
+    <div class="auth-title"><i class="fa-solid fa-leaf"></i> NutriLog</div>
+    <div class="auth-subtitle">Masuk untuk mengelola catatan diet Anda</div>
     <div class="form-group">
       <label>Email</label>
-      <input type="email" id="login-email" placeholder="nama@email.com"/>
+      <input type="email" id="login-email" placeholder="nama@email.com" required>
     </div>
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="login-password" placeholder="••••••••"/>
+      <input type="password" id="login-password" placeholder="••••••••" required>
     </div>
-    <button class="btn-primary" onclick="executeLogin()">Masuk Ke Akun</button>
-    <div class="auth-footer">
-      Belum punya akun? <a onclick="toggleAuthView(false)">Daftar sekarang</a>
-    </div>
+    <button class="btn btn-primary" onclick="executeLogin()" style="width:100%; justify-content:center; margin-top:10px;">
+      <i class="fa-solid fa-right-to-bracket"></i> Masuk
+    </button>
+    <div class="auth-toggle">Belum punya akun? <span onclick="toggleAuthView(false)">Daftar sekarang</span></div>
   </div>
 
-  <div id="view-auth-register" class="auth-box" style="display:none;">
-    <h2 class="serif">Buat Akun</h2>
-    <p class="subtitle">Daftar untuk mulai memantau nutrisi Anda</p>
+  <div class="auth-card" id="card-register" style="display:none;">
+    <div class="auth-title"><i class="fa-solid fa-user-plus"></i> Registrasi Member</div>
+    <div class="auth-subtitle">Daftarkan akun baru NutriLog Anda</div>
     <div class="form-group">
       <label>Nama Lengkap</label>
-      <input type="text" id="reg-nama" placeholder="Contoh: Budi Santoso"/>
+      <input type="text" id="reg-nama" placeholder="Nama Anda" required>
     </div>
     <div class="form-group">
       <label>Email</label>
-      <input type="email" id="reg-email" placeholder="nama@email.com"/>
+      <input type="email" id="reg-email" placeholder="nama@email.com" required>
     </div>
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="reg-password" placeholder="Minimal 6 karakter"/>
+      <input type="password" id="reg-password" placeholder="••••••••" required>
     </div>
-    <button class="btn-primary" onclick="executeRegister()">Registrasi</button>
-    <div class="auth-footer">
-      Sudah punya akun? <a onclick="toggleAuthView(true)">Login di sini</a>
+    <button class="btn btn-primary" onclick="executeRegister()" style="width:100%; justify-content:center; margin-top:10px;">
+      <i class="fa-solid fa-circle-check"></i> Buat Akun
+    </button>
+    <div class="auth-toggle">Sudah punya akun? <span onclick="toggleAuthView(true)">Masuk</span></div>
+  </div>
+</div>
+
+<div id="app-container">
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <h1><i class="fa-solid fa-leaf"></i> NutriLog</h1>
+        <p>Halo, <span id="user-display-name">User</span> — Catatan diet harian terintegrasi Cloud</p>
+      </div>
+      <div class="header-right">
+        <div id="today-date"></div>
+        <button class="btn-logout" onclick="executeLogout()"><i class="fa-solid fa-power-off"></i> Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('today',this)">
+        <i class="fa-solid fa-calendar-day"></i> Hari Ini
+      </button>
+      <button class="tab-btn" onclick="switchTab('history',this)">
+        <i class="fa-solid fa-clock-rotate-left"></i> Riwayat Multi-Hari
+      </button>
     </div>
   </div>
 
-  <div id="view-app" style="display:none;">
-    <header>
-      <div class="brand serif"><i class="fa-solid fa-apple-whole"></i> NutriLog</div>
-      <div class="nav-user">
-        <span id="display-username" style="font-weight:600;">User</span>
-        <button class="btn-logout" onclick="executeLogout()"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
-      </div>
-    </header>
+  <div class="container">
+    <div class="panel active" id="panel-today">
+      <div class="grid-2 mb20">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-gauge-high"></i> Ringkasan Hari Ini</div>
+          <div class="target-row">
+            <label for="targetInput"><i class="fa-solid fa-bullseye"></i> Target harian:</label>
+            <input type="number" id="targetInput" value="2000" min="100" max="9999" step="50"/>
+            <span style="font-size:.8rem;color:var(--txt-muted)">kkal</span>
+          </div>
+          <div class="summary-numbers">
+            <div class="num-box green">
+              <div class="val" id="totalKcal">0</div>
+              <div class="lbl">Dikonsumsi</div>
+            </div>
+            <div class="num-box amber">
+              <div class="val" id="targetKcal">2000</div>
+              <div class="lbl">Target</div>
+            </div>
+            <div class="num-box coral" id="sisaBox">
+              <div class="val" id="sisaKcal">2000</div>
+              <div class="lbl">Sisa</div>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span id="pctLabel">0%</span>
+              <span id="pctNote">Terus semangat!</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="actions-row">
+            <button class="btn btn-danger" onclick="resetHari()"><i class="fa-solid fa-rotate-left"></i> Reset Hari Ini</button>
+            <button class="btn btn-export" onclick="exportCSV('today')"><i class="fa-solid fa-file-csv"></i> Ekspor CSV</button>
+          </div>
+        </div>
 
-    <main class="container">
-      <div class="dashboard">
-        <div class="left-col">
-          <div class="card" style="margin-bottom:24px;">
-            <h3 class="serif" style="margin-bottom:16px; color:var(--green-1);">Tambah Konsumsi</h3>
-            <div style="margin-bottom:12px;">
-              <label style="display:block; font-size:0.8rem; font-weight:500; margin-bottom:4px; color:var(--text-mute);">WAKTU MAKAN</label>
-              <div class="meal-selector">
-                <button class="meal-btn active" data-meal="Pagi" onclick="selectMeal('Pagi')"><i class="fa-solid fa-sun"></i>Pagi</button>
-                <button class="meal-btn" data-meal="Siang" onclick="selectMeal('Siang')"><i class="fa-solid fa-cloud-sun"></i>Siang</button>
-                <button class="meal-btn" data-meal="Malam" onclick="selectMeal('Malam')"><i class="fa-solid fa-moon"></i>Malam</button>
-                <button class="meal-btn" data-meal="Camilan" onclick="selectMeal('Camilan')"><i class="fa-solid fa-cookie-bite"></i>Camilan</button>
-              </div>
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-chart-pie"></i> Kalori per Waktu Makan</div>
+          <canvas id="mealChart" width="200" height="200" style="margin:0 auto;display:block;"></canvas>
+          <div class="chart-legend" id="chartLegend"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-plus-circle"></i> Tambah Makanan</div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Waktu Makan</label>
+            <div class="meal-pills" id="mealPills">
+              <div class="meal-pill active" data-meal="Sarapan">🌅 Sarapan</div>
+              <div class="meal-pill" data-meal="Siang">☀️ Makan Siang</div>
+              <div class="meal-pill" data-meal="Malam">🌙 Makan Malam</div>
+              <div class="meal-pill" data-meal="Camilan">🍪 Camilan</div>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label for="foodName">Nama Makanan / Minuman</label>
+              <input type="text" id="foodName" placeholder="mis. Nasi goreng ayam…"/>
             </div>
             <div class="form-group">
-              <label>Nama Makanan / Minuman</label>
-              <input type="text" id="foodName" placeholder="Misal: Nasi Goreng Telur"/>
+              <label for="portions">Jumlah Porsi</label>
+              <input type="number" id="portions" value="1" min="0.25" step="0.25"/>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-              <div class="form-group">
-                <label>Jumlah Porsi</label>
-                <input type="number" id="portions" value="1" step="0.5" min="0.1" oninput="calculatePreview()"/>
+            <div class="form-group">
+              <label for="kcalPer">Kalori per Porsi (kkal)</label>
+              <input type="number" id="kcalPer" min="0" step="1" placeholder="mis. 350"/>
+            </div>
+            <div class="form-group full">
+              <div class="preview-box">
+                <span>Total kalori entri ini:</span>
+                <strong id="previewKcal" style="color:var(--green-1);font-family:var(--font-head);font-size:1.1rem;">— kkal</strong>
               </div>
-              <div class="form-group">
-                <label>Kcal / Porsi</label>
-                <input type="number" id="kcalPer" placeholder="Misal: 350" min="1" oninput="calculatePreview()"/>
-              </div>
             </div>
-            <div class="preview-box">
-              Estimasi Total: <strong id="previewKcal" style="color:var(--amber);">— kkal</strong>
-            </div>
-            <button class="btn-primary" onclick="tambahCatatan()"><i class="fa-solid fa-plus" style="margin-right:6px;"></i> Simpan Catatan</button>
           </div>
-
-          <div class="card">
-            <h3 class="serif" style="margin-bottom:12px; color:var(--green-1);">Target Kalori</h3>
-            <div class="form-group" style="margin-bottom:12px;">
-              <input type="number" id="input-target" value="2000" min="500" style="text-align:center; font-weight:600;"/>
-            </div>
-            <button class="btn-primary" style="background-color:var(--surface2); color:var(--green-1); border:1px solid var(--border);" onclick="updateTarget()">Perbarui Target</button>
+          <div class="actions-row">
+            <button class="btn btn-primary" onclick="tambahCatatan()" style="flex:1;justify-content:center;">
+              <i class="fa-solid fa-circle-plus"></i> Tambah Catatan
+          </button>
           </div>
         </div>
 
-        <div class="right-col">
-          <div class="card" style="margin-bottom:24px;">
-            <div class="summary-grid">
-              <div class="sum-card">
-                <div class="label">Hari Ini</div>
-                <div class="val serif" id="sum-today" style="font-weight:600;">0 <span style="font-size:0.9rem">kkal</span></div>
-              </div>
-              <div class="sum-card" id="status-card">
-                <div class="label">Sisa Kuota</div>
-                <div class="val serif" id="sum-status">2,000 <span style="font-size:0.9rem">kkal</span></div>
-              </div>
-            </div>
-            <div class="tabs">
-              <div class="tab active" id="tab-today" onclick="switchTab('today')">Hari Ini</div>
-              <div class="tab" id="tab-history" onclick="switchTab('history')">Riwayat Log</div>
-              <div class="tab" id="tab-trend" onclick="switchTab('trend')">Tren 7 Hari</div>
-            </div>
-
-            <div id="panel-today" class="panel active">
-              <div id="list-today"></div>
-            </div>
-
-            <div id="panel-history" class="panel">
-              <div class="history-header">
-                <div style="font-size:0.85rem; color:var(--text-mute);" id="history-count">0 catatan ditemukan</div>
-                <button class="btn-danger-outline" onclick="hapusSemua()"><i class="fa-solid fa-trash-can"></i> Bersihkan Semua</button>
-              </div>
-              <div id="list-history"></div>
-            </div>
-
-            <div id="panel-trend" class="panel">
-              <div class="chart-container">
-                <div id="chartTooltip" class="chart-tooltip"></div>
-                <canvas id="trendChart"></canvas>
-              </div>
-            </div>
-          </div>
+        <div class="card">
+          <div class="card-title"><i class="fa-solid fa-list-check"></i> Catatan Hari Ini</div>
+          <div class="history-list" id="historyList"></div>
         </div>
       </div>
-    </main>
+    </div>
+
+    <div class="panel" id="panel-history">
+      <div class="stat-row">
+        <div class="stat-box"><div class="sv" id="st-totalDays">0</div><div class="sl">Hari Dicatat</div></div>
+        <div class="stat-box"><div class="sv" id="st-avgKcal">0</div><div class="sl">Rata-rata kkal/hari</div></div>
+        <div class="stat-box"><div class="sv" id="st-streak">0</div><div class="sl">Streak Berturut-turut</div></div>
+        <div class="stat-box"><div class="sv" id="st-onTarget">0</div><div class="sl">Hari Sesuai Target</div></div>
+      </div>
+
+      <div class="card mb20">
+        <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Tren Konsumsi Kalori Harian (30 Hari Terakhir)</div>
+        <p style="font-size:.78rem;color:var(--txt-muted);margin-bottom:12px;">Arahkan kursor ke batang untuk melihat detail. Garis putus-putus = target kalori.</p>
+        <div class="trend-wrap">
+          <canvas id="trendChart" height="240"></canvas>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
+          <div class="legend-item"><div class="legend-dot" style="background:#4caf7d"></div><span>Di bawah / sesuai target</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:#e07060"></div><span>Melebihi target</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:#aaa;border:1px dashed #888"></div><span>Garis target</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:#5b8dee"></div><span>Hari ini</span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;">
+        <button class="btn btn-export" onclick="exportCSV('all')"><i class="fa-solid fa-file-csv"></i> Ekspor Semua Data CSV</button>
+        <button class="btn btn-danger" onclick="hapusSemua()"><i class="fa-solid fa-trash"></i> Hapus Semua Riwayat</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-calendar-week"></i> Detail Per Hari</div>
+        <div id="dateAccordion"></div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <script>
-    /* ==========================================================
-       STATE UTAMA & KONFIGURASI (FETCH MODE)
-       ========================================================== */
-    // !!! TEMPELKAN URL WEB APP DEPLOYMENT DARI GOOGLE APPS SCRIPT ANDA DI SINI !!!
-    const API_URL = "https://script.google.com/macros/s/AKfycbyBFm8AJl80Fsp6zij3nfG5uERXqZPyDTX0Mi7-hkz0LHF1AtXWxPJt8CzfXA6eipXbeg/exec"; 
+<div id="chartTooltip"></div>
+<div id="toast"></div>
 
-    let currentUser = null; 
-    let masterLogs = [];    
-    let selectedMeal = 'Pagi';
-    const TODAY_KEY = new Date().toISOString().split('T')[0];
+<script>
+/* ==========================================================
+   STATE UTAMA & KONFIGURASI
+========================================================== */
+let currentUser = null; // Menyimpan data session login {email, nama}
+let masterLogs = [];    // Menyimpan caching log seluruh data dari server
 
-    const MEAL_ICONS = {
-      'Pagi': 'fa-sun',
-      'Siang': 'fa-cloud-sun',
-      'Malam': 'fa-moon',
-      'Camilan': 'fa-cookie-bite'
-    };
+/* ==========================================================
+   KONFIGURASI API (BACKEND GOOGLE APPS SCRIPT)
+   Ganti URL di bawah dengan URL Web App hasil deploy GAS Anda.
+   Contoh: https://script.google.com/macros/s/AKfycb.../exec
+========================================================== */
+const API_URL = 'GANTI_DENGAN_URL_WEB_APP_GAS_ANDA';
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedUser = sessionStorage.getItem('nutrilog_user');
-      const savedTarget = localStorage.getItem('nutrilog_target');
-      if (savedTarget) {
-        document.getElementById('input-target').value = savedTarget;
-      }
-      if (savedUser) {
-        currentUser = JSON.parse(savedUser);
+/**
+ * Wrapper pemanggilan API ke backend GAS.
+ * Menggunakan Content-Type "text/plain" agar browser TIDAK
+ * mengirim preflight OPTIONS (GAS tidak menangani preflight),
+ * sehingga request lintas origin (GitHub Pages -> GAS) berjalan mulus.
+ */
+async function apiCall(action, payload = {}) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, payload })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+const MEAL_COLORS = { Sarapan:'#e6a817', Siang:'#2e7d52', Malam:'#5b8dee', Camilan:'#e07060' };
+const MEAL_ICONS  = {
+  Sarapan:{ icon:'fa-sun',       cls:'icon-sarapan' },
+  Siang  :{ icon:'fa-bowl-food', cls:'icon-siang'   },
+  Malam  :{ icon:'fa-moon',      cls:'icon-malam'   },
+  Camilan:{ icon:'fa-cookie',    cls:'icon-camilan' },
+};
+
+const TODAY_KEY  = new Date().toISOString().slice(0,10);
+const TODAY_DISP = new Date().toLocaleDateString('id-ID',{ weekday:'long', year:'numeric', month:'long', day:'numeric' });
+let selectedMeal = 'Sarapan';
+let trendBars = [];
+
+/* ==========================================================
+   LOADING & INTERFACE CONTROLLER
+========================================================== */
+function showLoading(show, text = "Memuat data...") {
+  const overlay = document.getElementById('loading-overlay');
+  document.getElementById('loading-text').textContent = text;
+  overlay.style.display = show ? 'flex' : 'none';
+}
+
+function toggleAuthView(showLogin) {
+  document.getElementById('card-login').style.display = showLogin ? 'block' : 'none';
+  document.getElementById('card-register').style.display = showLogin ? 'none' : 'block';
+}
+
+/* ==========================================================
+   SESSION MANAGEMENT & AUTH EXECUTION
+========================================================== */
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('today-date').textContent = TODAY_DISP;
+  
+  // Baca target lokal user terlebih dahulu
+  const cachedTarget = localStorage.getItem('nutrilog_target') || 2000;
+  document.getElementById('targetInput').value = cachedTarget;
+
+  // Cek Session Terbuka via sessionStorage
+  const savedUser = sessionStorage.getItem('nutrilog_user');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    launchApp();
+  } else {
+    showLoading(false);
+    document.getElementById('auth-container').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+  }
+});
+
+function executeLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  if (!email || !pass) { showToast('⚠️ Email dan password wajib diisi!'); return; }
+
+  showLoading(true, "Memvalidasi akun...");
+  apiCall('loginUser', { email, password: pass })
+    .then(res => {
+      if (res.success) {
+        currentUser = res.user;
+        sessionStorage.setItem('nutrilog_user', JSON.stringify(currentUser));
+        showToast('🔓 Login Berhasil!');
         launchApp();
       } else {
+        showLoading(false);
+        showToast('❌ ' + res.message);
+      }
+    })
+    .catch(err => { showLoading(false); showToast('❌ Server error: ' + err.message); });
+}
+
+function executeRegister() {
+  const nama = document.getElementById('reg-nama').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-password').value;
+
+  if (!nama || !email || !pass) { showToast('⚠️ Semua data form wajib diisi!'); return; }
+
+  showLoading(true, "Mendaftarkan user baru...");
+  apiCall('registerUser', { email, password: pass, nama })
+    .then(res => {
+      showLoading(false);
+      if (res.success) {
+        showToast('✅ ' + res.message);
         toggleAuthView(true);
+      } else {
+        showToast('⚠️ ' + res.message);
       }
-    });
+    })
+    .catch(err => { showLoading(false); showToast('❌ Register gagal.'); });
+}
 
-    function showLoading(show, text = "Memproses...") {
-      const overlay = document.getElementById('loading-overlay');
-      document.getElementById('loading-text').textContent = text;
-      overlay.style.display = show ? 'flex' : 'none';
-    }
+function executeLogout() {
+  sessionStorage.removeItem('nutrilog_user');
+  currentUser = null;
+  document.getElementById('auth-container').style.display = 'flex';
+  document.getElementById('app-container').style.display = 'none';
+  showToast('🔒 Berhasil keluar dari akun.');
+}
 
-    function showToast(msg) {
-      const t = document.getElementById('toast-msg');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => { t.classList.remove('show'); }, 3000);
-    }
+function launchApp() {
+  document.getElementById('auth-container').style.display = 'none';
+  document.getElementById('app-container').style.display = 'block';
+  document.getElementById('user-display-name').textContent = currentUser.nama;
+  fetchAndRenderAll();
+}
 
-    function toggleAuthView(showLogin) {
-      document.getElementById('view-auth-login').style.display = showLogin ? 'block' : 'none';
-      document.getElementById('view-auth-register').style.display = showLogin ? 'none' : 'block';
-      document.getElementById('view-app').style.display = 'none';
-    }
-
-    function launchApp() {
-      document.getElementById('view-auth-login').style.display = 'none';
-      document.getElementById('view-auth-register').style.display = 'none';
-      document.getElementById('view-app').style.display = 'block';
-      document.getElementById('display-username').textContent = currentUser.nama;
-      fetchAndRenderAll();
-    }
-
-    /* ==========================================================
-       AUTHENTICATION SYSTEMS (VIA FETCH POST)
-       ========================================================== */
-    function executeLogin() {
-      const email = document.getElementById('login-email').value.trim();
-      const pass = document.getElementById('login-password').value;
-      if (!email || !pass) { showToast('⚠️ Email dan password wajib diisi!'); return; }
-
-      showLoading(true, "Memvalidasi akun...");
-      
-      fetch(API_URL, {
-        method: "POST",
-        mode: "cors",
-        body: JSON.stringify({ action: "loginUser", email: email, password: pass })
-      })
-      .then(res => res.json())
-      .then(res => {
-        if (res.success) {
-          currentUser = res.user;
-          sessionStorage.setItem('nutrilog_user', JSON.stringify(currentUser));
-          showToast('🔓 Login Berhasil!');
-          launchApp();
-        } else {
-          showLoading(false);
-          showToast('❌ ' + res.message);
-        }
-      })
-      .catch(err => { showLoading(false); showToast('❌ Gagal tersambung ke Server Cloud.'); });
-    }
-
-    function executeRegister() {
-      const nama = document.getElementById('reg-nama').value.trim();
-      const email = document.getElementById('reg-email').value.trim();
-      const pass = document.getElementById('reg-password').value;
-
-      if (!nama || !email || !pass) { showToast('⚠️ Semua data form wajib diisi!'); return; }
-      if (pass.length < 6) { showToast('⚠️ Password minimal harus 6 karakter!'); return; }
-
-      showLoading(true, "Mendaftarkan user baru...");
-
-      fetch(API_URL, {
-        method: "POST",
-        mode: "cors",
-        body: JSON.stringify({ action: "registerUser", email: email, password: pass, nama: nama })
-      })
-      .then(res => res.json())
-      .then(res => {
-        showLoading(false);
-        if (res.success) {
-          showToast('✅ ' + res.message);
-          toggleAuthView(true);
-        } else {
-          showToast('⚠️ ' + res.message);
-        }
-      })
-      .catch(() => { showLoading(false); showToast('❌ Gagal mendaftarkan user.'); });
-    }
-
-    function executeLogout() {
-      sessionStorage.removeItem('nutrilog_user');
-      currentUser = null;
-      masterLogs = [];
-      document.getElementById('login-password').value = '';
-      toggleAuthView(true);
-      showToast('🔒 Anda telah keluar dari sistem.');
-    }
-
-    /* ==========================================================
-       CORE DATA FETCHING (VIA FETCH GET)
-       ========================================================== */
-    function fetchAndRenderAll() {
-      showLoading(true, "Mengambil data aktivitas...");
-      
-      fetch(`${API_URL}?action=getUserLogs&email=${encodeURIComponent(currentUser.email)}`)
-      .then(res => res.json())
-      .then(logs => {
-        masterLogs = logs;
-        renderToday();
-        if (document.getElementById('panel-history').classList.contains('active')) renderHistory();
-        if (document.getElementById('panel-trend').classList.contains('active')) renderTrendChart();
-        showLoading(false);
-      })
-      .catch(err => {
-        showLoading(false);
-        showToast('❌ Gagal sinkronisasi data.');
-      });
-    }
-
-    /* ==========================================================
-       UI INTERACTION LOGIC
-       ========================================================== */
-    function getTarget() {
-      return parseInt(document.getElementById('input-target').value) || 2000;
-    }
-
-    function updateTarget() {
-      const val = getTarget();
-      localStorage.setItem('nutrilog_target', val);
-      showToast('🎯 Target kalori diperbarui ke ' + val.toLocaleString('id-ID') + ' kkal');
+/* ==========================================================
+   CORE DATA FETCHING (CLOUD DATA READ)
+========================================================== */
+function fetchAndRenderAll() {
+  showLoading(true, "Mengambil data dari Spreadsheet...");
+  apiCall('getUserLogs', { email: currentUser.email })
+    .then(res => {
+      masterLogs = res.logs || [];
       renderToday();
-      if (document.getElementById('panel-trend').classList.contains('active')) renderTrendChart();
+      if (document.getElementById('panel-history').classList.contains('active')) {
+        renderHistory();
+      }
+      showLoading(false);
+    })
+    .catch(err => {
+      showLoading(false);
+      showToast('❌ Gagal mengambil data aktivitas.');
+    });
+}
+
+/* ==========================================================
+   BUSINESS LOGIC MODIFIED FOR SERVER INTEGRATION
+========================================================== */
+function getTarget() {
+  return parseInt(document.getElementById('targetInput').value) || 2000;
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'history') renderHistory();
+}
+
+function tambahCatatan() {
+  const name    = document.getElementById('foodName').value.trim();
+  const portion = parseFloat(document.getElementById('portions').value) || 1;
+  const kcalPer = parseFloat(document.getElementById('kcalPer').value);
+  if (!name)           { showToast('⚠️ Nama makanan wajib diisi!'); return; }
+  if (!kcalPer||kcalPer<=0) { showToast('⚠️ Kalori per porsi wajib diisi!'); return; }
+
+  const dataLog = {
+    tanggal: TODAY_KEY,
+    name: name,
+    meal: selectedMeal,
+    portion: portion,
+    kcalPer: kcalPer,
+    totalKcal: Math.round(portion * kcalPer),
+    time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
+  };
+
+  showLoading(true, "Menyimpan ke Cloud...");
+  apiCall('addLog', { email: currentUser.email, dataLog })
+    .then(res => {
+      document.getElementById('foodName').value  = '';
+      document.getElementById('kcalPer').value   = '';
+      document.getElementById('portions').value  = '1';
+      document.getElementById('previewKcal').textContent = '— kkal';
+      showToast(`✅ ${name} berhasil disimpan!`);
+      fetchAndRenderAll();
+    })
+    .catch(() => { showLoading(false); showToast('❌ Gagal menyimpan.'); });
+}
+
+function hapusEntri(id) {
+  if (!confirm('Hapus entri makanan ini?')) return;
+  showLoading(true, "Menghapus data...");
+  apiCall('deleteLog', { id, email: currentUser.email })
+    .then(res => {
+      showToast('🗑️ Entri dihapus dari cloud.');
+      fetchAndRenderAll();
+    })
+    .catch(() => { showLoading(false); showToast('❌ Gagal menghapus.'); });
+}
+
+function resetHari() {
+  if (!confirm('Hapus semua catatan hari ini pada Cloud?\nData hari lain tidak terpengaruh.')) return;
+  showLoading(true, "Mengosongkan log hari ini...");
+  apiCall('clearLogs', { email: currentUser.email, tanggal: TODAY_KEY })
+    .then(res => {
+      showToast('🔄 Data hari ini berhasil direset.');
+      fetchAndRenderAll();
+    })
+    .catch(() => { showLoading(false); showToast('❌ Gagal melakukan reset.'); });
+}
+
+function hapusSemua() {
+  if (!confirm('Hapus SEMUA riwayat dari seluruh hari di Cloud?\nTindakan ini permanen.')) return;
+  showLoading(true, "Menghapus total riwayat...");
+  apiCall('clearLogs', { email: currentUser.email, tanggal: null })
+    .then(res => {
+      showToast('🗑️ Seluruh riwayat Anda dibersihkan.');
+      fetchAndRenderAll();
+    })
+    .catch(() => { showLoading(false); showToast('❌ Gagal menghapus riwayat.'); });
+}
+
+/* ==========================================================
+   UI RENDERING METHODS (FILTER FROM CACHED LOGS)
+========================================================== */
+function renderToday() {
+  const todayEntries = masterLogs.filter(log => log.tanggal === TODAY_KEY);
+  renderHistoryList(todayEntries);
+  hitungUlang(todayEntries);
+  drawDonutChart(todayEntries);
+}
+
+function renderHistoryList(entries) {
+  const list = document.getElementById('historyList');
+  if (!entries || entries.length === 0) {
+    list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-utensils"></i>Belum ada catatan hari ini.<br/>Mulai tambahkan makananmu!</div>`;
+    return;
+  }
+  list.innerHTML = [...entries].reverse().map(e => {
+    const m = MEAL_ICONS[e.meal] || MEAL_ICONS.Camilan;
+    return `
+      <div class="entry-card">
+        <div class="entry-meal-icon ${m.cls}"><i class="fa-solid ${m.icon}"></i></div>
+        <div class="entry-info">
+          <div class="entry-name" title="${e.name}">${e.name}</div>
+          <div class="entry-meta">${e.meal} · ${e.portion} porsi · ${e.kcalPer} kkal/porsi · ${e.time}</div>
+        </div>
+        <div class="entry-kcal">${e.totalKcal} kkal</div>
+        <button class="btn-del btn" title="Hapus" onclick="hapusEntri('${e.id}')"><i class="fa-solid fa-xmark"></i></button>
+      </div>`;
+  }).join('');
+}
+
+function hitungUlang(entries) {
+  const target = getTarget();
+  const total  = (entries || []).reduce((s, e) => s + e.totalKcal, 0);
+  const sisa   = target - total;
+  const pct    = Math.min((total / target) * 100, 100);
+
+  document.getElementById('totalKcal').textContent  = total.toLocaleString('id-ID');
+  document.getElementById('targetKcal').textContent = target.toLocaleString('id-ID');
+  document.getElementById('sisaKcal').textContent   = Math.abs(sisa).toLocaleString('id-ID');
+  document.getElementById('pctLabel').textContent   = Math.round((total / target) * 100) + '%';
+  document.getElementById('sisaBox').className      = 'num-box ' + (sisa < 0 ? 'coral' : 'green');
+
+  const r = total / target;
+  let note = 'Terus semangat!';
+  if (r >= 1.2) note = '⚠️ Melebihi target!';
+  else if (r >= 1)  note = '🎯 Target tercapai!';
+  else if (r >= .8) note = '💪 Hampir sampai!';
+  else if (r >= .5) note = '👍 Bagus, terus!';
+  document.getElementById('pctNote').textContent = note;
+
+  const fill = document.getElementById('progressFill');
+  fill.style.width = pct + '%';
+  fill.className   = 'progress-fill' + (total > target * 1.2 ? ' over' : total > target * .85 ? ' warn' : '');
+}
+
+function renderHistory() {
+  const target = getTarget();
+  
+  // Dapatkan daftar tanggal unik terurut DESC
+  const dates = [...new Set(masterLogs.map(l => l.tanggal))].sort((a, b) => b.localeCompare(a));
+  
+  const dailyTotals = {};
+  let totalAll = 0, onTarget = 0;
+  
+  dates.forEach(d => {
+    const sum = masterLogs.filter(l => l.tanggal === d).reduce((s, e) => s + e.totalKcal, 0);
+    dailyTotals[d] = sum;
+    totalAll += sum;
+    if (sum > 0 && sum <= target) onTarget++;
+  });
+
+  const avg    = dates.length > 0 ? Math.round(totalAll / dates.length) : 0;
+  const streak = hitungStreak(dates, dailyTotals);
+
+  document.getElementById('st-totalDays').textContent = dates.length;
+  document.getElementById('st-avgKcal').textContent   = avg.toLocaleString('id-ID');
+  document.getElementById('st-streak').textContent    = streak + ' 🔥';
+  document.getElementById('st-onTarget').textContent  = onTarget;
+
+  const chartDates = [...dates].slice(0, 30).reverse();
+  drawTrendChart(chartDates, dailyTotals, target);
+  renderAccordion(dates, dailyTotals, target);
+}
+
+function hitungStreak(dates, dailyTotals) {
+  let streak = 0;
+  const base = new Date(TODAY_KEY);
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(base); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    if (dailyTotals[key] && dailyTotals[key] > 0) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}
+
+/* ==========================================================
+   CANVAS GRAPHICS ENGINE (DONUT & BAR TREND)
+========================================================== */
+function drawDonutChart(entries) {
+  const canvas = document.getElementById('mealChart');
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height, cx=W/2, cy=H/2, R=78, r=48;
+  ctx.clearRect(0,0,W,H);
+
+  const meals=['Sarapan','Siang','Malam','Camilan'];
+  const totals={};
+  meals.forEach(m=>totals[m]=0);
+  entries.forEach(e=>totals[e.meal]=(totals[e.meal]||0)+e.totalKcal);
+  const grand=Object.values(totals).reduce((a,b)=>a+b,0);
+
+  if (grand===0) {
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.arc(cx,cy,r,0,Math.PI*2,true);
+    ctx.fillStyle='#e8f0e8'; ctx.fill();
+    ctx.fillStyle='#a8c4a8'; ctx.font='500 12px DM Sans,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Belum ada data',cx,cy);
+    document.getElementById('chartLegend').innerHTML='';
+    return;
+  }
+
+  let sa=-Math.PI/2;
+  const segs=[];
+  meals.forEach(meal=>{
+    const val=totals[meal]; if(val<=0) return;
+    const angle=(val/grand)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,R,sa,sa+angle);
+    ctx.arc(cx,cy,r,sa+angle,sa,true);
+    ctx.closePath();
+    ctx.fillStyle=MEAL_COLORS[meal];
+    ctx.save(); ctx.shadowColor='#fff'; ctx.shadowBlur=3; ctx.fill(); ctx.restore();
+    segs.push({meal,val,pct:Math.round((val/grand)*100)});
+    sa+=angle;
+  });
+
+  ctx.fillStyle='#1e2d24'; ctx.font='600 22px Fraunces,Georgia,serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(grand.toLocaleString('id-ID'),cx,cy-8);
+  ctx.font='400 10px DM Sans,sans-serif'; ctx.fillStyle='#6b8a74';
+  ctx.fillText('kkal total',cx,cy+12);
+
+  document.getElementById('chartLegend').innerHTML = segs.map(s=>
+    `<div class="legend-item"><div class="legend-dot" style="background:${MEAL_COLORS[s.meal]}"></div>
+     <span>${s.meal}: <strong>${s.val} kkal</strong> (${s.pct}%)</span></div>`
+  ).join('');
+}
+
+function drawTrendChart(dates, dailyTotals, target) {
+  const canvas = document.getElementById('trendChart');
+  const ctx    = canvas.getContext('2d');
+
+  const minBarW  = 28;
+  const padL=60, padR=24, padT=28, padB=50;
+  const containerW = canvas.parentElement.clientWidth || 680;
+  const W = Math.max(containerW, dates.length * (minBarW+6) + padL + padR);
+  const H = 240;
+  canvas.width=W; canvas.height=H;
+  canvas.style.width=W+'px';
+  ctx.clearRect(0,0,W,H);
+  trendBars = [];
+
+  if (dates.length===0) {
+    ctx.fillStyle='#a8c4a8'; ctx.font='500 13px DM Sans,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('Belum ada data riwayat',W/2,H/2);
+    return;
+  }
+
+  const chartW = W-padL-padR;
+  const chartH = H-padT-padB;
+  const allVals = dates.map(d=>dailyTotals[d]||0);
+  const maxVal  = Math.max(...allVals, target)*1.18;
+
+  const toY = v => padT + chartH - (v/maxVal)*chartH;
+  const n   = dates.length;
+  const step = chartW/n;
+  const barW = Math.min(Math.floor(step*0.72), 44);
+
+  const gridN=5;
+  ctx.setLineDash([4,4]);
+  ctx.strokeStyle='#daeada'; ctx.lineWidth=1;
+  for (let i=0;i<=gridN;i++) {
+    const y   = padT+(chartH/gridN)*i;
+    const val = Math.round(maxVal-(maxVal/gridN)*i);
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+    ctx.fillStyle='#9ab8a0'; ctx.font='500 10px DM Sans,sans-serif';
+    ctx.textAlign='right'; ctx.textBaseline='middle';
+    ctx.fillText(val>=1000?(val/1000).toFixed(1)+'k':val, padL-6, y);
+  }
+  ctx.setLineDash([]);
+
+  const tY=toY(target);
+  ctx.save();
+  ctx.strokeStyle='rgba(120,120,120,.55)'; ctx.lineWidth=1.5;
+  ctx.setLineDash([7,4]);
+  ctx.beginPath(); ctx.moveTo(padL,tY); ctx.lineTo(W-padR,tY); ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle='#999'; ctx.font='600 10px DM Sans,sans-serif';
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('Target',padL+4,tY-7);
+
+  dates.forEach((d,i)=>{
+    const val  = dailyTotals[d]||0;
+    const xBar = padL + step*i + (step-barW)/2;
+    const yTop = val>0 ? toY(val) : H-padB;
+    const bH   = H-padB-yTop;
+    const over = val>target;
+    const isToday = d===TODAY_KEY;
+
+    let grad;
+    if (isToday) {
+      grad=ctx.createLinearGradient(xBar,yTop,xBar,H-padB);
+      grad.addColorStop(0,'#5b8dee'); grad.addColorStop(1,'#a8c4f8');
+    } else if (over) {
+      grad=ctx.createLinearGradient(xBar,yTop,xBar,H-padB);
+      grad.addColorStop(0,'#e07060'); grad.addColorStop(1,'#f0a898');
+    } else {
+      grad=ctx.createLinearGradient(xBar,yTop,xBar,H-padB);
+      grad.addColorStop(0,'#4caf7d'); grad.addColorStop(1,'#a8d8b9');
     }
 
-    function selectMeal(type) {
-      selectedMeal = type;
-      document.querySelectorAll('.meal-btn').forEach(b => {
-        b.classList.toggle('active', b.getAttribute('data-meal') === type);
-      });
-    }
+    if (val>0) {
+      const rad=Math.min(6,barW/2);
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.moveTo(xBar+rad,yTop); ctx.lineTo(xBar+barW-rad,yTop);
+      ctx.quadraticCurveTo(xBar+barW,yTop,xBar+barW,yTop+rad);
+      ctx.lineTo(xBar+barW,H-padB); ctx.lineTo(xBar,H-padB);
+      ctx.lineTo(xBar,yTop+rad); ctx.quadraticCurveTo(xBar,yTop,xBar+rad,yTop);
+      ctx.closePath(); ctx.fill();
 
-    function calculatePreview() {
-      const portion = parseFloat(document.getElementById('portions').value) || 0;
-      const kcalPer = parseFloat(document.getElementById('kcalPer').value) || 0;
-      const box = document.getElementById('previewKcal');
-      if (portion > 0 && kcalPer > 0) {
-        box.textContent = Math.round(portion * kcalPer).toLocaleString('id-ID') + ' kkal';
-      } else {
-        box.textContent = '— kkal';
+      if (barW>=22) {
+        ctx.fillStyle = isToday?'#2c5fa8':over?'#c04030':'#245f3e';
+        ctx.font=`600 ${Math.min(10,barW/3.2)}px DM Sans,sans-serif`;
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        const lbl=val>=1000?(val/1000).toFixed(1)+'k':val;
+        ctx.fillText(lbl, xBar+barW/2, yTop-3);
       }
     }
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      
-      document.getElementById('tab-' + tabId).classList.add('active');
-      document.getElementById('panel-' + tabId).classList.add('active');
+    const [,mm,dd]=d.split('-');
+    ctx.fillStyle = isToday?'#2e7d52':'#9ab8a0';
+    ctx.font = isToday?'700 10px DM Sans,sans-serif':'500 10px DM Sans,sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText(`${dd}/${mm}`, xBar+barW/2, H-padB+6);
 
-      if (tabId === 'history') renderHistory();
-      if (tabId === 'trend') renderTrendChart();
-    }
+    trendBars.push({ x:xBar, y:yTop, w:barW, h:bH, date:d, val, over, isToday });
+  });
 
-    function fmtDate(s) {
-      if(!s) return '';
-      const parts = s.split('-');
-      if(parts.length!==3) return s;
-      const bln = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-      return `${parts[2]} ${bln[parseInt(parts[1])-1]} ${parts[0]}`;
-    }
+  ctx.strokeStyle='#d3e8d3'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(padL,H-padB); ctx.lineTo(W-padR,H-padB); ctx.stroke();
+}
 
-    /* ==========================================================
-       RENDER CONTROLLERS
-       ========================================================== */
-    function renderToday() {
-      const list = document.getElementById('list-today');
-      list.innerHTML = '';
-      
-      const todayLogs = masterLogs.filter(l => l.tanggal === TODAY_KEY);
-      const totalToday = todayLogs.reduce((acc, curr) => acc + curr.totalKcal, 0);
-      
-      document.getElementById('sum-today').innerHTML = `${totalToday.toLocaleString('id-ID')} <span style="font-size:0.9rem">kkal</span>`;
-      
-      const target = getTarget();
-      const sisa = target - totalToday;
-      const statusCard = document.getElementById('status-card');
-      const statusVal = document.getElementById('sum-status');
-      
-      if (sisa >= 0) {
-        statusCard.className = 'sum-card status-aman';
-        statusCard.querySelector('.label').textContent = 'Sisa Kuota';
-        statusVal.innerHTML = `${sisa.toLocaleString('id-ID')} <span style="font-size:0.9rem">kkal</span>`;
-      } else {
-        statusCard.className = 'sum-card status-lebih';
-        statusCard.querySelector('.label').textContent = 'Surplus Kalori';
-        statusVal.innerHTML = `${Math.abs(sisa).toLocaleString('id-ID')} <span style="font-size:0.9rem">kkal</span>`;
-      }
-
-      if (todayLogs.length === 0) {
-        list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-utensils"></i>Belum ada makanan yang dicatat hari ini.</div>`;
-        return;
-      }
-
-      todayLogs.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'log-item';
-        div.innerHTML = `
-          <div class="log-left">
-            <div class="log-icon"><i class="fa-solid ${MEAL_ICONS[item.meal]||'fa-utensils'}"></i></div>
-            <div>
-              <div class="log-title">${item.name}</div>
-              <div class="log-sub">${item.meal} • ${item.portion} Porsi (@${item.kcalPer} kkal) • Jam ${item.time}</div>
-            </div>
+/* ==========================================================
+   ACCORDION & COMPLEMENTARY VIEW
+========================================================== */
+function renderAccordion(dates, dailyTotals, target) {
+  const el=document.getElementById('dateAccordion');
+  if (dates.length===0) {
+    el.innerHTML=`<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i>Belum ada riwayat tersimpan.</div>`;
+    return;
+  }
+  el.innerHTML = dates.map((d,i)=>{
+    const total=dailyTotals[d]||0;
+    const over =total>target;
+    const badge=over
+      ? `<span class="dg-badge badge-over">Melebihi target</span>`
+      : `<span class="dg-badge badge-ok">Sesuai target</span>`;
+    const todayTag = d===TODAY_KEY ? ` <span style="color:var(--green-2);font-size:.75rem;">(hari ini)</span>` : '';
+    return `
+      <div>
+        <div class="date-group-header" onclick="toggleAccordion(${i})">
+          <div class="dg-left">
+            <i class="fa-solid fa-chevron-right chevron" id="chev-${i}"></i>
+            <span class="dg-date">${fmtDate(d)}${todayTag}</span>
+            ${badge}
           </div>
-          <div class="log-right">
-            <div class="log-kcal">${item.totalKcal.toLocaleString('id-ID')} kkal</div>
-            <button class="btn-del" onclick="hapusEntri('${item.id}')"><i class="fa-solid fa-trash-can"></i></button>
-          </div>
-        `;
-        list.appendChild(div);
-      });
+          <span class="dg-total">${total.toLocaleString('id-ID')} kkal</span>
+        </div>
+        <div class="date-group-entries" id="dge-${i}">
+          ${renderDayEntries(d)}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleAccordion(i) {
+  const el   = document.getElementById('dge-'+i);
+  const chev = document.getElementById('chev-'+i);
+  const open = el.classList.toggle('open');
+  chev.classList.toggle('open', open);
+}
+
+function renderDayEntries(dateKey) {
+  const entries = masterLogs.filter(log => log.tanggal === dateKey);
+  if (!entries.length) return `<div class="empty-state" style="padding:16px"><i class="fa-solid fa-utensils"></i>Tidak ada entri.</div>`;
+  return entries.map(e=>{
+    const m=MEAL_ICONS[e.meal]||MEAL_ICONS.Camilan;
+    return `
+      <div class="entry-card" style="margin-bottom:6px;">
+        <div class="entry-meal-icon ${m.cls}"><i class="fa-solid ${m.icon}"></i></div>
+        <div class="entry-info">
+          <div class="entry-name" title="${e.name}">${e.name}</div>
+          <div class="entry-meta">${e.meal} · ${e.portion} porsi · ${e.kcalPer} kkal/porsi · ${e.time}</div>
+        </div>
+        <div class="entry-kcal">${e.totalKcal} kkal</div>
+      </div>`;
+  }).join('');
+}
+
+/* ==========================================================
+   INTERACTIVE HANDLERS & HELPERS
+========================================================== */
+function fmtDate(ymd) {
+  if (!ymd) return '';
+  const [y,m,d] = ymd.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('id-ID',{ weekday:'short', day:'numeric', month:'short', year:'numeric' });
+}
+
+function updatePreview() {
+  const p = parseFloat(document.getElementById('portions').value) || 1;
+  const k = parseFloat(document.getElementById('kcalPer').value);
+  document.getElementById('previewKcal').textContent = k>0 ? Math.round(p*k)+' kkal' : '— kkal';
+}
+
+function exportCSV(mode) {
+  const header=['Tanggal','Nama Makanan','Waktu Makan','Porsi','Kalori/Porsi','Total Kalori','Waktu Catat'];
+  let rows=[];
+  if (mode==='today') {
+    const entries = masterLogs.filter(log => log.tanggal === TODAY_KEY);
+    if (!entries.length) { showToast('⚠️ Tidak ada data hari ini.'); return; }
+    rows=entries.map(e=>[TODAY_KEY,`"${e.name}"`,e.meal,e.portion,e.kcalPer,e.totalKcal,e.time]);
+  } else {
+    if (!masterLogs.length) { showToast('⚠️ Tidak ada data sama sekali.'); return; }
+    rows=masterLogs.map(e=>[e.tanggal,`"${e.name}"`,e.meal,e.portion,e.kcalPer,e.totalKcal,e.time]);
+  }
+  const csv  = [header,...rows].map(r=>r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`nutrilog-${mode==='today'?TODAY_KEY:'semua'}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('📥 Data berhasil diekspor!');
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// Event Listeners UI bawaan
+document.getElementById('targetInput').addEventListener('input', function() {
+  localStorage.setItem('nutrilog_target', this.value);
+  renderToday();
+  if (document.getElementById('panel-history').classList.contains('active')) renderHistory();
+});
+['portions','kcalPer'].forEach(id => document.getElementById(id).addEventListener('input', updatePreview));
+document.querySelectorAll('.meal-pill').forEach(pill => {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('.meal-pill').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    selectedMeal = this.dataset.meal;
+  });
+});
+['foodName','kcalPer','portions'].forEach(id =>
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key==='Enter') tambahCatatan(); })
+);
+
+// Tooltip Chart Integration
+(function() {
+  const tooltip = document.getElementById('chartTooltip');
+  const canvas  = document.getElementById('trendChart');
+  function onMove(e) {
+    const rect   = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const cx     = (e.clientX - rect.left) * scaleX;
+    const cy_    = (e.clientY - rect.top)  * (canvas.height / rect.height);
+    let found    = null;
+    for (const b of trendBars) {
+      if (cx >= b.x && cx <= b.x+b.w && cy_ >= b.y && cy_ <= b.y+b.h) { found=b; break; }
     }
-
-    function renderHistory() {
-      const container = document.getElementById('list-history');
-      container.innerHTML = '';
-      
-      document.getElementById('history-count').textContent = `${masterLogs.length} catatan ditemukan`;
-
-      if (masterLogs.length === 0) {
-        container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-folder-open"></i>Riwayat log kosong.</div>`;
-        return;
-      }
-
-      const groups = {};
-      masterLogs.forEach(l => {
-        if (!groups[l.tanggal]) groups[l.tanggal] = [];
-        groups[l.tanggal].push(l);
-      });
-
-      const sortedDates = Object.keys(groups).sort((a,b) => b.localeCompare(a));
-
-      sortedDates.forEach(date => {
-        const logs = groups[date];
-        const dayTotal = logs.reduce((sum, n) => sum + n.totalKcal, 0);
-        
-        const gDiv = document.createElement('div');
-        gDiv.className = 'history-group';
-        
-        const head = document.createElement('div');
-        head.className = 'history-group-head';
-        head.innerHTML = `
-          <div><i class="fa-regular fa-calendar-days" style="margin-right:6px;"></i> ${fmtDate(date)} ${date===TODAY_KEY?'(Hari Ini)':''}</div>
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span style="color:var(--text); font-weight:600;">Total: ${dayTotal.toLocaleString('id-ID')} kkal</span>
-            <button class="btn-danger-outline" style="padding:2px 6px; font-size:0.75rem;" onclick="resetHari('${date}')">Reset Hari</button>
-          </div>
-        `;
-        gDiv.appendChild(head);
-
-        logs.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'log-item';
-          div.innerHTML = `
-            <div class="log-left">
-              <div class="log-icon" style="width:30px; height:30px; font-size:0.8rem;"><i class="fa-solid ${MEAL_ICONS[item.meal]||'fa-utensils'}"></i></div>
-              <div>
-                <div class="log-title" style="font-size:0.9rem;">${item.name}</div>
-                <div class="log-sub" style="font-size:0.7rem;">${item.meal} • ${item.portion} Porsi (@${item.kcalPer} kkal) • Jam ${item.time}</div>
-              </div>
-            </div>
-            <div class="log-right">
-              <div class="log-kcal" style="font-size:0.9rem;">${item.totalKcal.toLocaleString('id-ID')} kkal</div>
-              <button class="btn-del" onclick="hapusEntri('${item.id}')"><i class="fa-solid fa-trash-can"></i></button>
-            </div>
-          `;
-          gDiv.appendChild(div);
-        });
-
-        container.appendChild(gDiv);
-      });
-    }
-
-    /* ==========================================================
-       DATA PERSISTENCE / APPLICATION WRITING (VIA FETCH POST)
-       ========================================================== */
-    function tambahCatatan() {
-      const name    = document.getElementById('foodName').value.trim();
-      const portion = parseFloat(document.getElementById('portions').value) || 1;
-      const kcalPer = parseFloat(document.getElementById('kcalPer').value);
-      
-      if (!name) { showToast('⚠️ Nama makanan wajib diisi!'); return; }
-      if (!kcalPer || kcalPer <= 0) { showToast('⚠️ Kalori per porsi wajib diisi!'); return; }
-
-      const dataLog = {
-        tanggal: TODAY_KEY,
-        name: name,
-        meal: selectedMeal,
-        portion: portion,
-        kcalPer: kcalPer,
-        totalKcal: Math.round(portion * kcalPer),
-        time: new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})
-      };
-
-      showLoading(true, "Menyimpan ke Cloud...");
-
-      fetch(API_URL, {
-        method: "POST",
-        mode: "cors",
-        body: JSON.stringify({ action: "addLog", email: currentUser.email, dataLog: dataLog })
-      })
-      .then(res => res.json())
-      .then(res => {
-        document.getElementById('foodName').value  = '';
-        document.getElementById('kcalPer').value   = '';
-        document.getElementById('portions').value  = '1';
-        document.getElementById('previewKcal').textContent = '— kkal';
-        showToast(`✅ ${name} berhasil disimpan!`);
-        fetchAndRenderAll();
-      })
-      .catch(() => { showLoading(false); showToast('❌ Gagal menyimpan data.'); });
-    }
-
-    function hapusEntri(id) {
-      if (!confirm('Hapus entri makanan ini?')) return;
-      showLoading(true, "Menghapus data...");
-
-      fetch(API_URL, {
-        method: "POST",
-        mode: "cors",
-        body: JSON.stringify({ action: "deleteLog", id: id, email: currentUser.email })
-      })
-      .then(res => res.json())
-      .then(res => {
-        showToast('🗑️ Entri dihapus.');
-        fetchAndRenderAll();
-      })
-      .catch(() => { showLoading(false); showToast('❌ Gagal menghapus.'); });
-    }
-
-    function resetHari(tanggalInput) {
-      const tglTarget = tanggalInput || TODAY_KEY;
-      if (!confirm(`Hapus semua catatan tanggal ${fmtDate(tglTarget)}?\nData hari lain aman.`)) return;
-      showLoading(true, "Mengosongkan log...");
-
-      fetch(API_URL, {
-        method: "POST",
-        mode: "cors",
-        body: JSON.stringify({ action: "clearLogs", email: currentUser.email, tanggal: tglTarget })
-      })
-      .then(res => res.json())
-      .then(res => {
-        showToast('🔄 Riwayat tanggal tersebut berhasil dibersihkan.');
-        fetchAndRenderAll();
-      })
-      .catch(() => { showLoading(false); showToast('❌ Gagal mereset.'); });
-    }
-
-    function hapusSemua() {
-      if (!confirm('Hapus TOTAL seluruh riwayat Anda di Cloud?\nTindakan ini tidak bisa dibatalkan.')) return;
-      showLoading(true, "Membersihkan seluruh riwayat...");
-
-      fetch(API_URL, {
-        method: "POST",
-        mode: "cors",
-        body: JSON.stringify({ action: "clearLogs", email: currentUser.email, tanggal: null })
-      })
-      .then(res => res.json())
-      .then(res => {
-        showToast('🗑️ Seluruh database riwayat Anda telah dibersihkan.');
-        fetchAndRenderAll();
-      })
-      .catch(() => { showLoading(false); showToast('❌ Gagal menghapus database.'); });
-    }
-
-    /* ==========================================================
-       CANVAS BAR CHART CONFIGURATION & RENDERER
-       ========================================================== */
-    let trendBars = [];
-    function renderTrendChart() {
-      const canvas = document.getElementById('trendChart');
-      if(!canvas) return;
-      const ctx = canvas.getContext('2d');
-      
-      const rect = canvas.parentNode.getBoundingClientRect();
-      canvas.width = rect.width * window.devicePixelRatio;
-      canvas.height = 200 * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-      
-      const W = rect.width;
-      const H = 200;
-      ctx.clearRect(0,0,W,H);
-
-      const dates = [];
-      for(let i=6; i>=0; i--){
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        dates.push(d.toISOString().split('T')[0]);
-      }
-
-      const dailyVals = dates.map(dt => {
-        return masterLogs.filter(l => l.tanggal === dt).reduce((s,n)=>s+n.totalKcal, 0);
-      });
-
-      const maxVal = Math.max(...dailyVals, getTarget(), 1000);
-      const padL = 40, padR = 10, padT = 20, padB = 30;
-      const graphW = W - padL - padR;
-      const graphH = H - padT - padB;
-
-      ctx.strokeStyle = '#eef5ee';
-      ctx.lineWidth = 1;
-      ctx.fillStyle = '#627568';
-      ctx.font = '10px sans-serif';
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      
-      const steps = 4;
-      for(let i=0; i<=steps; i++) {
-        const val = Math.round((maxVal / steps) * i);
-        const y = padT + graphH - (val / maxVal) * graphH;
-        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
-        ctx.fillText(val.toLocaleString('id-ID'), padL - 6, y);
-      }
-
-      const target = getTarget();
-      const targetY = padT + graphH - (target / maxVal) * graphH;
-      ctx.strokeStyle = '#e06d53';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4,4]);
-      ctx.beginPath(); ctx.moveTo(padL, targetY); ctx.lineTo(W - padR, targetY); ctx.stroke();
-      ctx.setLineDash([]);
-
-      const barGap = 12;
-      const totalGaps = dates.length - 1;
-      const barW = (graphW - (totalGaps * barGap)) / dates.length;
-
-      trendBars = [];
-
-      dates.forEach((date, i) => {
-        const val = dailyVals[i];
-        const h = (val / maxVal) * graphH;
-        const x = padL + i * (barW + barGap);
-        const y = padT + graphH - h;
-        const over = val > target;
-
-        ctx.fillStyle = over ? '#e06d53' : '#4caf7d';
-        ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(x, y, barW, h>0?h:1, [4, 4, 0, 0]);
-          ctx.fill();
-        } else {
-          ctx.fillRect(x, y, barW, h>0?h:1);
-        }
-
-        ctx.fillStyle = '#627568';
-        ctx.font = '10px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        const lbl = date.split('-')[2];
-        ctx.fillText(lbl, x + barW/2, padT + graphH + 6);
-
-        trendBars.push({ x:x, y:y, w:barW, h:h, date:date, val:val, over:over, isToday:date===TODAY_KEY });
-      });
-
-      setupChartEvents();
-    }
-
-    function setupChartEvents() {
-      const tooltip = document.getElementById('chartTooltip');
-      const canvas  = document.getElementById('trendChart');
-      function onMove(e) {
-        const rect   = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const cx     = (e.clientX - rect.left) * (canvas.width / rect.width) / window.devicePixelRatio;
-        const cy_    = (e.clientY - rect.top) * (canvas.height / rect.height) / window.devicePixelRatio;
-        let found    = null;
-        for (const b of trendBars) {
-          if (cx >= b.x && cx <= b.x+b.w && cy_ >= b.y && cy_ <= b.y+b.h) { found=b; break; }
-        }
-        if (found) {
-          const target=getTarget();
-          const diff  =found.val-target;
-          const pct   =Math.round((found.val/target)*100);
-          tooltip.innerHTML=
-            `<strong>${fmtDate(found.date)}${found.isToday?' (Hari ini)':''}</strong><br>`+
-            `Konsumsi: <strong>${found.val.toLocaleString('id-ID')} kkal</strong><br>`+
-            `Target: ${target.toLocaleString('id-ID')} kkal (${pct}%)<br>`+
-            (found.over
-              ? `<span style="color:#f0a898">+${Math.abs(diff).toLocaleString('id-ID')} kkal melebihi</span>`
-              : `<span style="color:#a8d8b9">${Math.abs(diff).toLocaleString('id-ID')} kkal sisa kuota</span>`);
-          
-          tooltip.style.display='block';
-          tooltip.style.left=(found.x + 20)+'px';
-          tooltip.style.top=(found.y - 10)+'px';
-        } else {
-          tooltip.style.display='none';
-        }
-      }
-      canvas.onmousemove = onMove;
-      canvas.onmouseleave = () => { tooltip.style.display='none'; };
-    }
-  </script>
+    if (found) {
+      const target=getTarget();
+      const diff  =found.val-target;
+      const pct   =Math.round((found.val/target)*100);
+      tooltip.innerHTML=
+        `<strong>${fmtDate(found.date)}${found.isToday?' (Hari ini)':''}</strong><br>`+
+        `Konsumsi: <strong>${found.val.toLocaleString('id-ID')} kkal</strong><br>`+
+        `Target: ${target.toLocaleString('id-ID')} kkal (${pct}%)<br>`+
+        (found.over
+          ? `<span style="color:#f0a898">+${Math.abs(diff).toLocaleString('id-ID')} kkal melebihi</span>`
+          : `<span style="color:#a8d8b9">${Math.abs(diff).toLocaleString('id-ID')} kkal di bawah target</span>`);
+      tooltip.style.display='block';
+      tooltip.style.left = (e.clientX+14)+'px';
+      tooltip.style.top  = (e.clientY-10)+'px';
+    } else { tooltip.style.display='none'; }
+  }
+  canvas.addEventListener('mousemove', onMove);
+  canvas.addEventListener('mouseleave', ()=>{ tooltip.style.display='none'; });
+})();
+</script>
 </body>
 </html>
