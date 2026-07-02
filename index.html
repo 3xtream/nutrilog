@@ -110,6 +110,8 @@
     .ai-photo-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
     .btn-ai { background:var(--teal); color:#fff; }
     .btn-ai:hover { background:#2f7d84; transform:translateY(-1px); }
+    .btn-ai-alt { background:var(--surface); color:var(--teal); border:1.5px solid var(--teal); }
+    .btn-ai-alt:hover { background:rgba(58,143,150,.08); transform:translateY(-1px); }
     .ai-photo-hint { font-size:.78rem; color:var(--txt-muted); flex:1; min-width:140px; }
     .btn-icon { background:none; border:1.5px solid var(--border); color:var(--txt-muted); width:34px; height:34px; border-radius:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; flex-shrink:0; }
     .btn-icon:hover { border-color:var(--green-2); color:var(--green-1); }
@@ -331,16 +333,20 @@
           <div class="card-title"><i class="fa-solid fa-plus-circle"></i> Tambah Makanan</div>
 
           <div class="ai-photo-box">
-            <input type="file" id="foodPhotoInput" accept="image/*" style="display:none" onchange="handleFoodPhotoSelected(event)"/>
+            <input type="file" id="foodPhotoCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhotoSelected(event)"/>
+            <input type="file" id="foodPhotoUploadInput" accept="image/*" style="display:none" onchange="handleFoodPhotoSelected(event)"/>
             <div class="ai-photo-row">
-              <button type="button" class="btn btn-ai" onclick="document.getElementById('foodPhotoInput').click()">
-                <i class="fa-solid fa-camera"></i> Deteksi dari Foto
+              <button type="button" class="btn btn-ai" onclick="document.getElementById('foodPhotoCameraInput').click()">
+                <i class="fa-solid fa-camera"></i> Ambil Foto
               </button>
-              <span class="ai-photo-hint">Foto makanan → AI isi otomatis nama &amp; kalori</span>
+              <button type="button" class="btn btn-ai btn-ai-alt" onclick="document.getElementById('foodPhotoUploadInput').click()">
+                <i class="fa-solid fa-image"></i> Upload Foto
+              </button>
               <button type="button" class="btn-icon" onclick="openGeminiKeyModal()" title="Atur API Key Gemini">
                 <i class="fa-solid fa-gear"></i>
               </button>
             </div>
+            <span class="ai-photo-hint">Foto makanan → AI isi otomatis nama &amp; kalori</span>
             <div id="aiPhotoPreviewWrap" style="display:none;">
               <img id="aiPhotoPreview" alt="Preview foto makanan"/>
               <div id="aiPhotoStatus" class="ai-photo-status"></div>
