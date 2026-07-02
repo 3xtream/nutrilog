@@ -105,6 +105,30 @@
     .btn-export:hover  { background:#2f7d84; }
     .actions-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
 
+    /* AI PHOTO DETECTION */
+    .ai-photo-box { background:var(--surface2); border:1.5px dashed var(--green-3); border-radius:12px; padding:12px 14px; margin-bottom:18px; }
+    .ai-photo-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn-ai { background:var(--teal); color:#fff; }
+    .btn-ai:hover { background:#2f7d84; transform:translateY(-1px); }
+    .ai-photo-hint { font-size:.78rem; color:var(--txt-muted); flex:1; min-width:140px; }
+    .btn-icon { background:none; border:1.5px solid var(--border); color:var(--txt-muted); width:34px; height:34px; border-radius:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; flex-shrink:0; }
+    .btn-icon:hover { border-color:var(--green-2); color:var(--green-1); }
+    #aiPhotoPreviewWrap { display:flex; align-items:center; gap:12px; margin-top:12px; }
+    #aiPhotoPreview { width:64px; height:64px; object-fit:cover; border-radius:9px; border:1.5px solid var(--border); flex-shrink:0; }
+    .ai-photo-status { font-size:.82rem; line-height:1.4; }
+    .ai-photo-status.loading { color:var(--teal); }
+    .ai-photo-status.success { color:var(--green-1); }
+    .ai-photo-status.error   { color:var(--coral); }
+
+    /* MODAL */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(30,45,36,.45); z-index:10000; justify-content:center; align-items:center; padding:20px; }
+    .modal-overlay.show { display:flex; }
+    .modal-box { background:var(--surface); border-radius:var(--radius); padding:24px; width:100%; max-width:420px; box-shadow:var(--shadow); }
+    .modal-title { font-family:var(--font-head); font-size:1.15rem; font-weight:600; color:var(--green-1); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+    .modal-desc { font-size:.82rem; color:var(--txt-muted); line-height:1.5; margin-bottom:16px; }
+    .modal-desc a { color:var(--teal); }
+    .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; flex-wrap:wrap; }
+
     /* SUMMARY NUMBERS */
     .summary-numbers { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
     .num-box { background:var(--surface2); border-radius:10px; padding:14px 10px; text-align:center; }
@@ -305,6 +329,24 @@
       <div class="grid-2">
         <div class="card">
           <div class="card-title"><i class="fa-solid fa-plus-circle"></i> Tambah Makanan</div>
+
+          <div class="ai-photo-box">
+            <input type="file" id="foodPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhotoSelected(event)"/>
+            <div class="ai-photo-row">
+              <button type="button" class="btn btn-ai" onclick="document.getElementById('foodPhotoInput').click()">
+                <i class="fa-solid fa-camera"></i> Deteksi dari Foto
+              </button>
+              <span class="ai-photo-hint">Foto makanan → AI isi otomatis nama &amp; kalori</span>
+              <button type="button" class="btn-icon" onclick="openGeminiKeyModal()" title="Atur API Key Gemini">
+                <i class="fa-solid fa-gear"></i>
+              </button>
+            </div>
+            <div id="aiPhotoPreviewWrap" style="display:none;">
+              <img id="aiPhotoPreview" alt="Preview foto makanan"/>
+              <div id="aiPhotoStatus" class="ai-photo-status"></div>
+            </div>
+          </div>
+
           <div class="form-group" style="margin-bottom:14px">
             <label>Waktu Makan</label>
             <div class="meal-pills" id="mealPills">
@@ -386,6 +428,26 @@
 <div id="chartTooltip"></div>
 <div id="toast"></div>
 
+<div id="geminiKeyModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title"><i class="fa-solid fa-key"></i> Atur Gemini API Key</div>
+    <p class="modal-desc">
+      Dipakai untuk fitur deteksi kalori dari foto. API Key disimpan hanya di browser ini
+      (<code>localStorage</code>), tidak dikirim ke server NutriLog. Dapatkan key gratis di
+      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>.
+    </p>
+    <div class="form-group full">
+      <label for="geminiKeyInput">API Key</label>
+      <input type="password" id="geminiKeyInput" placeholder="AIzaSy..."/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="clearGeminiKey()"><i class="fa-solid fa-trash"></i> Hapus</button>
+      <button class="btn" onclick="closeGeminiKeyModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveGeminiKey()"><i class="fa-solid fa-check"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ==========================================================
    STATE UTAMA & KONFIGURASI
@@ -398,7 +460,7 @@ let masterLogs = [];    // Menyimpan caching log seluruh data dari server
    Ganti URL di bawah dengan URL Web App hasil deploy GAS Anda.
    Contoh: https://script.google.com/macros/s/AKfycb.../exec
 ========================================================== */
-const API_URL = 'https://script.google.com/macros/s/AKfycbyBFm8AJl80Fsp6zij3nfG5uERXqZPyDTX0Mi7-hkz0LHF1AtXWxPJt8CzfXA6eipXbeg/exec';
+const API_URL = 'GANTI_DENGAN_URL_WEB_APP_GAS_ANDA';
 
 /**
  * Wrapper pemanggilan API ke backend GAS.
@@ -414,6 +476,136 @@ async function apiCall(action, payload = {}) {
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
+}
+
+/* ==========================================================
+   DETEKSI KALORI DARI FOTO (GEMINI VISION API)
+   API Key disimpan di localStorage dengan key: gemini_api_key
+========================================================== */
+const GEMINI_MODEL_FALLBACKS = ['gemini-3.1-flash-lite'];
+
+function getGeminiApiKey() {
+  return localStorage.getItem('gemini_api_key') || '';
+}
+
+function openGeminiKeyModal() {
+  document.getElementById('geminiKeyInput').value = getGeminiApiKey();
+  document.getElementById('geminiKeyModal').classList.add('show');
+}
+
+function closeGeminiKeyModal() {
+  document.getElementById('geminiKeyModal').classList.remove('show');
+}
+
+function saveGeminiKey() {
+  const key = document.getElementById('geminiKeyInput').value.trim();
+  if (!key) { showToast('⚠️ API Key tidak boleh kosong.'); return; }
+  localStorage.setItem('gemini_api_key', key);
+  closeGeminiKeyModal();
+  showToast('✅ API Key Gemini tersimpan di perangkat ini.');
+}
+
+function clearGeminiKey() {
+  localStorage.removeItem('gemini_api_key');
+  document.getElementById('geminiKeyInput').value = '';
+  showToast('🗑️ API Key Gemini dihapus.');
+}
+
+function handleFoodPhotoSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    showToast('⚠️ Atur API Key Gemini terlebih dahulu.');
+    openGeminiKeyModal();
+    e.target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const base64 = reader.result.split(',')[1];
+    const previewWrap = document.getElementById('aiPhotoPreviewWrap');
+    const previewImg  = document.getElementById('aiPhotoPreview');
+    const statusEl     = document.getElementById('aiPhotoStatus');
+    previewImg.src = reader.result;
+    previewWrap.style.display = 'flex';
+    statusEl.textContent = '';
+    statusEl.className = 'ai-photo-status';
+    detectFoodFromPhoto(base64, file.type || 'image/jpeg', apiKey);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = ''; // agar bisa pilih file yang sama lagi
+}
+
+async function detectFoodFromPhoto(base64Data, mimeType, apiKey) {
+  const statusEl = document.getElementById('aiPhotoStatus');
+  statusEl.textContent = '🔎 Menganalisis foto dengan AI...';
+  statusEl.className = 'ai-photo-status loading';
+
+  const prompt =
+`Kamu adalah asisten ahli gizi. Lihat foto makanan/minuman ini dan perkirakan:
+1. Nama makanan (singkat, dalam Bahasa Indonesia)
+2. Estimasi jumlah kalori TOTAL untuk porsi yang terlihat di foto (kkal, angka bulat)
+Jika ada beberapa item dalam satu foto, gabungkan menjadi satu nama gabungan & satu total kalori.
+Jawab HANYA dalam format JSON murni, tanpa markdown/backtick, tanpa penjelasan tambahan, persis struktur ini:
+{"nama_makanan": "...", "estimasi_kalori": 000, "catatan": "penjelasan singkat asumsi porsi (boleh kosong)"}`;
+
+  let lastErr = null;
+  for (const model of GEMINI_MODEL_FALLBACKS) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              { inline_data: { mime_type: mimeType, data: base64Data } }
+            ]
+          }],
+          generationConfig: { temperature: 0.2 }
+        })
+      });
+
+      if (!res.ok) {
+        const errBody = await res.text();
+        throw new Error(`Model ${model} (${res.status}): ${errBody.slice(0, 150)}`);
+      }
+
+      const data = await res.json();
+      const rawText = (data.candidates?.[0]?.content?.parts || [])
+        .map(p => p.text || '').join('').trim();
+      const cleaned = rawText.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+
+      if (!parsed.nama_makanan || !parsed.estimasi_kalori) {
+        throw new Error('Format respons AI tidak sesuai.');
+      }
+
+      const kkal = Math.round(Number(parsed.estimasi_kalori));
+      document.getElementById('foodName').value = parsed.nama_makanan;
+      document.getElementById('portions').value = 1;
+      document.getElementById('kcalPer').value  = kkal;
+      updatePreview();
+
+      statusEl.textContent = `✅ Terdeteksi: ${parsed.nama_makanan} (~${kkal.toLocaleString('id-ID')} kkal)` +
+        (parsed.catatan ? ` — ${parsed.catatan}` : '') +
+        ` · Silakan periksa & sesuaikan sebelum disimpan.`;
+      statusEl.className = 'ai-photo-status success';
+      showToast('🤖 Deteksi AI berhasil!');
+      return; // sukses, hentikan loop fallback
+    } catch (err) {
+      lastErr = err;
+      continue; // coba model fallback berikutnya
+    }
+  }
+
+  statusEl.textContent = '❌ Gagal mendeteksi kalori dari foto. ' + (lastErr ? lastErr.message : '');
+  statusEl.className = 'ai-photo-status error';
+  showToast('❌ Deteksi AI gagal. Coba lagi atau isi manual.');
 }
 
 const MEAL_COLORS = { Sarapan:'#e6a817', Siang:'#2e7d52', Malam:'#5b8dee', Camilan:'#e07060' };
@@ -975,6 +1167,9 @@ function showToast(msg) {
 }
 
 // Event Listeners UI bawaan
+document.getElementById('geminiKeyModal').addEventListener('click', function(e) {
+  if (e.target === this) closeGeminiKeyModal();
+});
 document.getElementById('targetInput').addEventListener('input', function() {
   localStorage.setItem('nutrilog_target', this.value);
   renderToday();
