@@ -331,7 +331,7 @@
           <div class="card-title"><i class="fa-solid fa-plus-circle"></i> Tambah Makanan</div>
 
           <div class="ai-photo-box">
-            <input type="file" id="foodPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhotoSelected(event)"/>
+            <input type="file" id="foodPhotoInput" accept="image/*" style="display:none" onchange="handleFoodPhotoSelected(event)"/>
             <div class="ai-photo-row">
               <button type="button" class="btn btn-ai" onclick="document.getElementById('foodPhotoInput').click()">
                 <i class="fa-solid fa-camera"></i> Deteksi dari Foto
@@ -460,7 +460,7 @@ let masterLogs = [];    // Menyimpan caching log seluruh data dari server
    Ganti URL di bawah dengan URL Web App hasil deploy GAS Anda.
    Contoh: https://script.google.com/macros/s/AKfycb.../exec
 ========================================================== */
-const API_URL = 'https://script.google.com/macros/s/AKfycbyBFm8AJl80Fsp6zij3nfG5uERXqZPyDTX0Mi7-hkz0LHF1AtXWxPJt8CzfXA6eipXbeg/exec';
+const API_URL = 'GANTI_DENGAN_URL_WEB_APP_GAS_ANDA';
 
 /**
  * Wrapper pemanggilan API ke backend GAS.
