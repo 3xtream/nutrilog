@@ -482,7 +482,7 @@ async function apiCall(action, payload = {}) {
    DETEKSI KALORI DARI FOTO (GEMINI VISION API)
    API Key disimpan di localStorage dengan key: gemini_api_key
 ========================================================== */
-const GEMINI_MODEL_FALLBACKS = ['gemini-3.1-flash-lite'];
+const GEMINI_MODEL_FALLBACKS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 
 function getGeminiApiKey() {
   return localStorage.getItem('gemini_api_key') || '';
@@ -637,7 +637,35 @@ function toggleAuthView(showLogin) {
 
 /* ==========================================================
    SESSION MANAGEMENT & AUTH EXECUTION
+   Session disimpan di localStorage (bukan sessionStorage) agar
+   tetap login walau tab/browser ditutup dan dibuka lagi.
+   Session punya masa berlaku (SESSION_MAX_AGE_MS) demi keamanan.
 ========================================================== */
+const SESSION_KEY = 'nutrilog_session';
+const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 hari
+
+function saveSession(user) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ user, savedAt: Date.now() }));
+}
+
+function loadSession() {
+  const raw = localStorage.getItem(SESSION_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.user || !parsed.savedAt) { clearSession(); return null; }
+    if (Date.now() - parsed.savedAt > SESSION_MAX_AGE_MS) { clearSession(); return null; }
+    return parsed.user;
+  } catch (e) {
+    clearSession();
+    return null;
+  }
+}
+
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('today-date').textContent = TODAY_DISP;
   
@@ -645,10 +673,10 @@ window.addEventListener('DOMContentLoaded', () => {
   const cachedTarget = localStorage.getItem('nutrilog_target') || 2000;
   document.getElementById('targetInput').value = cachedTarget;
 
-  // Cek Session Terbuka via sessionStorage
-  const savedUser = sessionStorage.getItem('nutrilog_user');
+  // Cek Session Tersimpan (persist lintas sesi browser)
+  const savedUser = loadSession();
   if (savedUser) {
-    currentUser = JSON.parse(savedUser);
+    currentUser = savedUser;
     launchApp();
   } else {
     showLoading(false);
@@ -667,7 +695,7 @@ function executeLogin() {
     .then(res => {
       if (res.success) {
         currentUser = res.user;
-        sessionStorage.setItem('nutrilog_user', JSON.stringify(currentUser));
+        saveSession(currentUser);
         showToast('🔓 Login Berhasil!');
         launchApp();
       } else {
@@ -700,7 +728,7 @@ function executeRegister() {
 }
 
 function executeLogout() {
-  sessionStorage.removeItem('nutrilog_user');
+  clearSession();
   currentUser = null;
   document.getElementById('auth-container').style.display = 'flex';
   document.getElementById('app-container').style.display = 'none';
