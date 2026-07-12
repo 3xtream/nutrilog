@@ -554,7 +554,7 @@ async function detectFoodFromPhoto(base64Data, mimeType, apiKey) {
 `Kamu adalah asisten ahli gizi. Lihat foto makanan/minuman ini dan perkirakan:
 1. Nama makanan (singkat, dalam Bahasa Indonesia)
 2. Estimasi jumlah kalori TOTAL untuk porsi yang terlihat di foto (kkal, angka bulat)
-Jika ada beberapa item dalam satu foto, gabungkan menjadi satu nama gabungan & satu total kalori.
+Jika ada beberapa item dalam satu foto, gabungkan menjadi satu nama gabungan & jelaskan perhitungan per itemnya berapa kalori untuk setiap gram-nya.
 Jawab HANYA dalam format JSON murni, tanpa markdown/backtick, tanpa penjelasan tambahan, persis struktur ini:
 {"nama_makanan": "...", "estimasi_kalori": 000, "catatan": "penjelasan singkat asumsi porsi (boleh kosong)"}`;
 
